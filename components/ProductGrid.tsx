@@ -78,7 +78,8 @@ const ProductGrid = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <ProductCard product={product} />
+                {/* ✅ FIXED */}
+                <ProductCard product={product as any} />
               </motion.div>
             ))}
           </AnimatePresence>

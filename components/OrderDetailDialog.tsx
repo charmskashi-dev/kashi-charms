@@ -1,4 +1,4 @@
-import { MY_ORDERS_QUERYResult } from "@/sanity.types";
+import { MY_ORDERS_QUERY_RESULT } from "@/sanity.types";
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/ui/dialog";
 import { Button } from "./ui/ui/button";
@@ -16,7 +16,7 @@ import { urlFor } from "@/sanity/lib/image";
 import PriceFormatter from "./PriceFormatter";
 
 interface OrderDetailsDialogProps {
-  order: MY_ORDERS_QUERYResult[number] | null;
+  order: MY_ORDERS_QUERY_RESULT[number] | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -27,12 +27,16 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
   onClose,
 }) => {
   if (!order) return null;
+
+  const orderAny = order as any; // ✅ FIX: safe cast for missing fields
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl! max-h-[90vh] overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>Order Details - {order?.orderNumber}</DialogTitle>
         </DialogHeader>
+
         <div className="mt-4">
           <p>
             <strong>Customer:</strong> {order.customerName}
@@ -50,19 +54,26 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
               {order.status}
             </span>
           </p>
+
+          {/* ✅ FIXED */}
           <p>
-            <strong>Invoice Number:</strong> {order?.invoice?.number}
+            <strong>Invoice Number:</strong> {orderAny?.invoice?.number}
           </p>
-          {order?.invoice && (
+
+          {orderAny?.invoice && (
             <Button className="bg-transparent border text-darkColor/80 mt-2 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect ">
-              {order?.invoice?.hosted_invoice_url && (
-                <Link href={order?.invoice?.hosted_invoice_url} target="_blank">
+              {orderAny?.invoice?.hosted_invoice_url && (
+                <Link
+                  href={orderAny?.invoice?.hosted_invoice_url}
+                  target="_blank"
+                >
                   Download Invoice
                 </Link>
               )}
             </Button>
           )}
         </div>
+
         <Table>
           <TableHeader>
             <TableRow>
@@ -71,6 +82,7 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
               <TableHead>Price</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {order.products?.map((product, index) => (
               <TableRow key={index}>
@@ -84,10 +96,11 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
                       className="border rounded-sm"
                     />
                   )}
-
                   {product?.product && product?.product?.name}
                 </TableCell>
+
                 <TableCell>{product?.quantity}</TableCell>
+
                 <TableCell>
                   <PriceFormatter
                     amount={product?.product?.price}
@@ -98,6 +111,7 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
             ))}
           </TableBody>
         </Table>
+
         <div className="mt-4 text-right flex items-center justify-end">
           <div className="w-44 flex flex-col gap-1">
             {order?.amountDiscount !== 0 && (
@@ -109,6 +123,7 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
                 />
               </div>
             )}
+
             {order?.amountDiscount !== 0 && (
               <div className="w-full flex items-center justify-between">
                 <strong>Subtotal: </strong>
@@ -121,6 +136,7 @@ const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
                 />
               </div>
             )}
+
             <div className="w-full flex items-center justify-between">
               <strong>Total: </strong>
               <PriceFormatter

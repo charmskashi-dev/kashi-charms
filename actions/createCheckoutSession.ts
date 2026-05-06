@@ -2,6 +2,7 @@
 
 import { backendClient } from "@/sanity/lib/backendClient";
 
+// ✅ CREATE ORDER
 export default async function createCheckoutSession(
   items: any[],
   metadata: any
@@ -30,6 +31,7 @@ export default async function createCheckoutSession(
       totalPrice,
       currency: "INR",
       status: "pending",
+      paymentMethod: "unpaid", // ✅ added for consistency
       orderDate: new Date().toISOString(),
     };
 
@@ -45,3 +47,24 @@ export default async function createCheckoutSession(
     return { success: false };
   }
 }
+
+// ✅ FIXED FUNCTION (NOW ACCEPTS 2 ARGS)
+export const markOrderAsPaid = async (
+  orderId: string,
+  paymentMethod?: string
+) => {
+  try {
+    await backendClient
+      .patch(orderId)
+      .set({
+        status: "paid",
+        paymentMethod: paymentMethod || "manual-payment", // ✅ supports your call
+      })
+      .commit();
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};

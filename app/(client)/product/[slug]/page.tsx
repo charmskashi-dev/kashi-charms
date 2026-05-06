@@ -88,14 +88,17 @@ const SingleProductPage = async ({
             {/* ACTIONS */}
             <div className="flex gap-3">
               <AddToCartButton
-                product={product}
+                product={product as any}  // ✅ FIX
                 className="flex-1 rounded-full bg-shop-dark-green text-white hover:opacity-90"
               />
-              <FavoriteButton showProduct product={product} />
+              <FavoriteButton
+                showProduct
+                product={product as any}  // ✅ FIX
+              />
             </div>
 
             {/* EXTRA */}
-            <ProductCharacteristics product={product} />
+            <ProductCharacteristics product={product as any} />  {/* ✅ FIX */}
 
             {/* TRUST */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">

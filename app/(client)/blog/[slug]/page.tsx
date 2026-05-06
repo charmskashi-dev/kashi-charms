@@ -1,6 +1,6 @@
 import Container from "@/components/Container";
 import Title from "@/components/Title";
-import { SINGLE_BLOG_QUERYResult } from "@/sanity.types";
+import { SINGLE_BLOG_QUERY_RESULT } from "@/sanity.types";
 import { urlFor } from "@/sanity/lib/image";
 import {
   getBlogCategories,
@@ -28,7 +28,7 @@ const SingleBlogPage = async ({
 }) => {
   const { slug } = params;
 
-  const blog: SINGLE_BLOG_QUERYResult = await getSingleBlog(slug);
+  const blog: SINGLE_BLOG_QUERY_RESULT = await getSingleBlog(slug);
   if (!blog) return notFound();
 
   return (
