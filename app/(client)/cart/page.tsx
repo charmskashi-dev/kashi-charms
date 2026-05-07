@@ -5,12 +5,17 @@ import EmptyCart from "@/components/EmptyCart";
 import PriceFormatter from "@/components/PriceFormatter";
 import QuantityButton from "@/components/QuantityButton";
 import Title from "@/components/Title";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/ui/card";
 import { Order } from "@/sanity.types";
 import { writeClient } from "@/sanity/lib/writeClient";
 import { urlFor } from "@/sanity/lib/image";
 import useStore from "@/store";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { ShoppingBag, Trash } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -31,7 +36,6 @@ const CartPage = () => {
 
   const groupedItems = useStore((state) => state.getGroupedItems());
 
-  const { isSignedIn } = useAuth();
   const { user } = useUser();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -82,6 +86,11 @@ const CartPage = () => {
 
   // SAVE ADDRESS
   const handleSaveAddress = async () => {
+    if (!user) {
+      window.location.href = "/sign-in";
+      return;
+    }
+
     if (!form.name || !form.address || !form.city) {
       toast.error("Fill all required fields");
       return;
@@ -94,7 +103,7 @@ const CartPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          clerkUserId: user?.id,
+          clerkUserId: user.id,
           ...form,
         }),
       });
@@ -138,8 +147,8 @@ const CartPage = () => {
       return;
     }
 
-    // LOGIN ONLY HERE
-    if (!isSignedIn || !user) {
+    // LOGIN ONLY WHEN CHECKING OUT
+    if (!user) {
       window.location.href = "/sign-in";
       return;
     }
@@ -350,7 +359,7 @@ const CartPage = () => {
                 </Card>
 
                 {/* ADDRESS SECTION */}
-                {isSignedIn && (
+                {user && (
                   <Card className="mt-5">
                     <CardHeader>
                       <CardTitle>
