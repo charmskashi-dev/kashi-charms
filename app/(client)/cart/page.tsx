@@ -2,7 +2,6 @@
 
 import Container from "@/components/Container";
 import EmptyCart from "@/components/EmptyCart";
-import NoAccess from "@/components/NoAccess";
 import PriceFormatter from "@/components/PriceFormatter";
 import QuantityButton from "@/components/QuantityButton";
 import Title from "@/components/Title";
@@ -121,13 +120,14 @@ const CartPage = () => {
       return;
     }
 
-    if (!selectedAddress) {
-      toast.error("Please select address");
+    // ✅ LOGIN ONLY WHEN CHECKING OUT
+    if (!user) {
+      window.location.href = "/sign-in";
       return;
     }
 
-    if (!user) {
-      toast.error("Please login first");
+    if (!selectedAddress) {
+      toast.error("Please select address");
       return;
     }
 
@@ -149,14 +149,14 @@ const CartPage = () => {
 
       if (!res?.success) throw new Error();
 
-      // ✅ COD FLOW (STOP HERE)
+      // ✅ COD FLOW
       if (paymentMethod === "cod") {
         toast.success("Order placed successfully 🎉");
         window.location.href = "/success";
-        return; // 🚨 THIS FIXES YOUR BUG
+        return;
       }
 
-      // 🔥 ONLINE PAYMENT (PayU)
+      // 🔥 ONLINE PAYMENT
       const payuRes = await fetch("/api/create-order", {
         method: "POST",
         headers: {
@@ -196,103 +196,104 @@ const CartPage = () => {
 
   return (
     <div className="bg-gray-50 pb-20">
-      {isSignedIn ? (
-        <Container>
-          {groupedItems?.length ? (
-            <>
-              <div className="flex items-center gap-2 py-5">
-                <ShoppingBag />
-                <Title>Shopping Cart</Title>
-              </div>
+      <Container>
+        {groupedItems?.length ? (
+          <>
+            <div className="flex items-center gap-2 py-5">
+              <ShoppingBag />
+              <Title>Shopping Cart</Title>
+            </div>
 
-              <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid lg:grid-cols-3 gap-6">
 
-                {/* LEFT */}
-                <div className="lg:col-span-2 bg-white p-4 rounded-md">
-                  {groupedItems.map(({ product }) => {
-                    const count = getItemCount(product._id);
+              {/* LEFT */}
+              <div className="lg:col-span-2 bg-white p-4 rounded-md">
+                {groupedItems.map(({ product }) => {
+                  const count = getItemCount(product._id);
 
-                    return (
-                      <div key={product._id} className="flex justify-between border-b py-3">
-                        <div className="flex gap-3">
-                          {product?.images?.[0] && (
-                            <Image
-                              src={urlFor(product.images[0]).url()}
-                              alt="product"
-                              width={100}
-                              height={100}
-                              className="rounded"
-                            />
-                          )}
-
-                          <div>
-                            <p className="font-semibold">{product.name}</p>
-                            <Trash
-                              onClick={() => deleteCartProduct(product._id)}
-                              className="cursor-pointer text-red-500 mt-2"
-                            />
-                          </div>
-                        </div>
+                  return (
+                    <div key={product._id} className="flex justify-between border-b py-3">
+                      <div className="flex gap-3">
+                        {product?.images?.[0] && (
+                          <Image
+                            src={urlFor(product.images[0]).url()}
+                            alt="product"
+                            width={100}
+                            height={100}
+                            className="rounded"
+                          />
+                        )}
 
                         <div>
-                          <PriceFormatter amount={(product.price || 0) * count} />
-                          <QuantityButton product={product} />
+                          <p className="font-semibold">{product.name}</p>
+
+                          <Trash
+                            onClick={() => deleteCartProduct(product._id)}
+                            className="cursor-pointer text-red-500 mt-2"
+                          />
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
 
-                {/* RIGHT */}
-                <div>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Order Summary</CardTitle>
-                    </CardHeader>
-
-                    <CardContent>
-                      <p>Total: ₹{getTotalPrice()}</p>
-
-                      {/* PAYMENT TOGGLE */}
-                      <div className="flex gap-2 mt-4">
-                        <button
-                          onClick={() => setPaymentMethod("cod")}
-                          className={`flex-1 py-2 rounded ${
-                            paymentMethod === "cod"
-                              ? "bg-black text-white"
-                              : "bg-gray-100"
-                          }`}
-                        >
-                          COD
-                        </button>
-
-                        <button
-                          onClick={() => setPaymentMethod("online")}
-                          className={`flex-1 py-2 rounded ${
-                            paymentMethod === "online"
-                              ? "bg-black text-white"
-                              : "bg-gray-100"
-                          }`}
-                        >
-                          Pay Online
-                        </button>
+                      <div>
+                        <PriceFormatter amount={(product.price || 0) * count} />
+                        <QuantityButton product={product} />
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* RIGHT */}
+              <div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Order Summary</CardTitle>
+                  </CardHeader>
+
+                  <CardContent>
+                    <p>Total: ₹{getTotalPrice()}</p>
+
+                    {/* PAYMENT TOGGLE */}
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={() => setPaymentMethod("cod")}
+                        className={`flex-1 py-2 rounded ${
+                          paymentMethod === "cod"
+                            ? "bg-black text-white"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        COD
+                      </button>
 
                       <button
-                        onClick={handleCheckout}
-                        disabled={loading}
-                        className="w-full mt-4 bg-black text-white p-3 rounded"
+                        onClick={() => setPaymentMethod("online")}
+                        className={`flex-1 py-2 rounded ${
+                          paymentMethod === "online"
+                            ? "bg-black text-white"
+                            : "bg-gray-100"
+                        }`}
                       >
-                        {loading
-                          ? "Processing..."
-                          : paymentMethod === "cod"
-                          ? "Place Order (COD)"
-                          : "Pay Now"}
+                        Pay Online
                       </button>
-                    </CardContent>
-                  </Card>
+                    </div>
 
-                  {/* ADDRESS */}
+                    <button
+                      onClick={handleCheckout}
+                      disabled={loading}
+                      className="w-full mt-4 bg-black text-white p-3 rounded"
+                    >
+                      {loading
+                        ? "Processing..."
+                        : paymentMethod === "cod"
+                        ? "Place Order (COD)"
+                        : "Pay Now"}
+                    </button>
+                  </CardContent>
+                </Card>
+
+                {/* ADDRESS */}
+                {isSignedIn && (
                   <Card className="mt-5">
                     <CardHeader>
                       <CardTitle>Delivery Address</CardTitle>
@@ -335,6 +336,7 @@ const CartPage = () => {
                               setForm({ ...form, name: e.target.value })
                             }
                           />
+
                           <input
                             placeholder="Address"
                             className="w-full border p-2"
@@ -343,6 +345,7 @@ const CartPage = () => {
                               setForm({ ...form, address: e.target.value })
                             }
                           />
+
                           <input
                             placeholder="City"
                             className="w-full border p-2"
@@ -362,17 +365,14 @@ const CartPage = () => {
                       )}
                     </CardContent>
                   </Card>
-
-                </div>
+                )}
               </div>
-            </>
-          ) : (
-            <EmptyCart />
-          )}
-        </Container>
-      ) : (
-        <NoAccess />
-      )}
+            </div>
+          </>
+        ) : (
+          <EmptyCart />
+        )}
+      </Container>
     </div>
   );
 };
