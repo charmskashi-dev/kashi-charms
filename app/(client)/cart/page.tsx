@@ -22,21 +22,30 @@ type Address = NonNullable<Order["address"]> & {
 };
 
 const CartPage = () => {
-  const { deleteCartProduct, getTotalPrice, getItemCount, resetCart } = useStore();
+  const {
+    deleteCartProduct,
+    getTotalPrice,
+    getItemCount,
+    resetCart,
+  } = useStore();
 
   const groupedItems = useStore((state) => state.getGroupedItems());
+
   const { isSignedIn } = useAuth();
   const { user } = useUser();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [selectedAddress, setSelectedAddress] =
+    useState<Address | null>(null);
+
   const [loading, setLoading] = useState(false);
 
-  // ✅ PAYMENT METHOD
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cod" | "online"
+  >("cod");
 
-  // 🔥 ADDRESS FORM
   const [showForm, setShowForm] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -45,26 +54,33 @@ const CartPage = () => {
     zip: "",
   });
 
-  // ✅ FETCH ADDRESSES
+  // FETCH ADDRESSES ONLY IF USER LOGGED IN
   const fetchAddresses = async () => {
+    if (!user?.id) return;
+
     try {
       const data = await writeClient.fetch(
         `*[_type=="address" && clerkUserId==$id]`,
-        { id: user?.id }
+        { id: user.id }
       );
 
       setAddresses(data || []);
-      if (data?.length > 0) setSelectedAddress(data[0]);
+
+      if (data?.length > 0) {
+        setSelectedAddress(data[0]);
+      }
     } catch (err) {
       console.log(err);
     }
   };
 
   useEffect(() => {
-    if (user?.id) fetchAddresses();
+    if (user?.id) {
+      fetchAddresses();
+    }
   }, [user?.id]);
 
-  // ✅ SAVE ADDRESS
+  // SAVE ADDRESS
   const handleSaveAddress = async () => {
     if (!form.name || !form.address || !form.city) {
       toast.error("Fill all required fields");
@@ -90,6 +106,7 @@ const CartPage = () => {
       toast.success("Address added ✅");
 
       setShowForm(false);
+
       setForm({
         name: "",
         address: "",
@@ -99,13 +116,14 @@ const CartPage = () => {
       });
 
       await fetchAddresses();
+
       setSelectedAddress(data.address);
     } catch {
       toast.error("Failed to save address ❌");
     }
   };
 
-  // 🔄 RESET CART
+  // RESET CART
   const handleResetCart = () => {
     if (window.confirm("Reset cart?")) {
       resetCart();
@@ -113,15 +131,15 @@ const CartPage = () => {
     }
   };
 
-  // 🔥 FINAL CHECKOUT
+  // FINAL CHECKOUT
   const handleCheckout = async () => {
     if (!groupedItems.length) {
       toast.error("Cart empty");
       return;
     }
 
-    // ✅ LOGIN ONLY WHEN CHECKING OUT
-    if (!user) {
+    // LOGIN ONLY HERE
+    if (!isSignedIn || !user) {
       window.location.href = "/sign-in";
       return;
     }
@@ -142,21 +160,28 @@ const CartPage = () => {
       const res = await createCheckoutSession(items, {
         orderNumber: "ORD-" + Date.now(),
         customerName: user.fullName || "Guest",
-        customerEmail: user.emailAddresses[0]?.emailAddress || "",
+        customerEmail:
+          user.emailAddresses[0]?.emailAddress || "",
         clerkUserId: user.id,
         address: selectedAddress,
       });
 
-      if (!res?.success) throw new Error();
+      if (!res?.success) {
+        throw new Error();
+      }
 
-      // ✅ COD FLOW
+      // COD FLOW
       if (paymentMethod === "cod") {
         toast.success("Order placed successfully 🎉");
+
+        resetCart();
+
         window.location.href = "/success";
+
         return;
       }
 
-      // 🔥 ONLINE PAYMENT
+      // ONLINE PAYMENT
       const payuRes = await fetch("/api/create-order", {
         method: "POST",
         headers: {
@@ -165,29 +190,39 @@ const CartPage = () => {
         body: JSON.stringify({
           amount: res.totalPrice,
           name: user.fullName,
-          email: user.emailAddresses[0]?.emailAddress,
-          phone: user.phoneNumbers?.[0]?.phoneNumber || "9999999999",
+          email:
+            user.emailAddresses[0]?.emailAddress,
+          phone:
+            user.phoneNumbers?.[0]?.phoneNumber ||
+            "9999999999",
         }),
       });
 
       const data = await payuRes.json();
 
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "https://secure.payu.in/_payment";
+      const paymentForm = document.createElement("form");
+
+      paymentForm.method = "POST";
+
+      paymentForm.action =
+        "https://secure.payu.in/_payment";
 
       Object.entries(data).forEach(([key, value]) => {
         const input = document.createElement("input");
+
         input.name = key;
+
         input.value = String(value);
-        form.appendChild(input);
+
+        paymentForm.appendChild(input);
       });
 
-      document.body.appendChild(form);
-      form.submit();
+      document.body.appendChild(paymentForm);
 
+      paymentForm.submit();
     } catch (err) {
       console.error(err);
+
       toast.error("Checkout failed ❌");
     } finally {
       setLoading(false);
@@ -205,14 +240,16 @@ const CartPage = () => {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
-
               {/* LEFT */}
               <div className="lg:col-span-2 bg-white p-4 rounded-md">
                 {groupedItems.map(({ product }) => {
                   const count = getItemCount(product._id);
 
                   return (
-                    <div key={product._id} className="flex justify-between border-b py-3">
+                    <div
+                      key={product._id}
+                      className="flex justify-between border-b py-3"
+                    >
                       <div className="flex gap-3">
                         {product?.images?.[0] && (
                           <Image
@@ -225,22 +262,36 @@ const CartPage = () => {
                         )}
 
                         <div>
-                          <p className="font-semibold">{product.name}</p>
+                          <p className="font-semibold">
+                            {product.name}
+                          </p>
 
                           <Trash
-                            onClick={() => deleteCartProduct(product._id)}
+                            onClick={() =>
+                              deleteCartProduct(product._id)
+                            }
                             className="cursor-pointer text-red-500 mt-2"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <PriceFormatter amount={(product.price || 0) * count} />
+                        <PriceFormatter
+                          amount={(product.price || 0) * count}
+                        />
+
                         <QuantityButton product={product} />
                       </div>
                     </div>
                   );
                 })}
+
+                <button
+                  onClick={handleResetCart}
+                  className="mt-5 border px-4 py-2 rounded text-red-500 border-red-500 hover:bg-red-50"
+                >
+                  Reset Cart
+                </button>
               </div>
 
               {/* RIGHT */}
@@ -251,12 +302,16 @@ const CartPage = () => {
                   </CardHeader>
 
                   <CardContent>
-                    <p>Total: ₹{getTotalPrice()}</p>
+                    <p className="font-semibold">
+                      Total: ₹{getTotalPrice()}
+                    </p>
 
-                    {/* PAYMENT TOGGLE */}
+                    {/* PAYMENT */}
                     <div className="flex gap-2 mt-4">
                       <button
-                        onClick={() => setPaymentMethod("cod")}
+                        onClick={() =>
+                          setPaymentMethod("cod")
+                        }
                         className={`flex-1 py-2 rounded ${
                           paymentMethod === "cod"
                             ? "bg-black text-white"
@@ -267,7 +322,9 @@ const CartPage = () => {
                       </button>
 
                       <button
-                        onClick={() => setPaymentMethod("online")}
+                        onClick={() =>
+                          setPaymentMethod("online")
+                        }
                         className={`flex-1 py-2 rounded ${
                           paymentMethod === "online"
                             ? "bg-black text-white"
@@ -292,11 +349,13 @@ const CartPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* ADDRESS */}
+                {/* ADDRESS SECTION */}
                 {isSignedIn && (
                   <Card className="mt-5">
                     <CardHeader>
-                      <CardTitle>Delivery Address</CardTitle>
+                      <CardTitle>
+                        Delivery Address
+                      </CardTitle>
                     </CardHeader>
 
                     <CardContent>
@@ -304,23 +363,33 @@ const CartPage = () => {
                         addresses.map((addr) => (
                           <div
                             key={addr._id}
-                            onClick={() => setSelectedAddress(addr)}
-                            className={`p-2 cursor-pointer mb-2 ${
-                              selectedAddress?._id === addr._id
+                            onClick={() =>
+                              setSelectedAddress(addr)
+                            }
+                            className={`p-2 cursor-pointer mb-2 rounded ${
+                              selectedAddress?._id ===
+                              addr._id
                                 ? "bg-green-100"
-                                : ""
+                                : "bg-gray-50"
                             }`}
                           >
                             <p>{addr.name}</p>
-                            <p>{addr.address}, {addr.city}</p>
+
+                            <p>
+                              {addr.address}, {addr.city}
+                            </p>
                           </div>
                         ))
                       ) : (
-                        <p className="text-gray-500">No address found</p>
+                        <p className="text-gray-500">
+                          No address found
+                        </p>
                       )}
 
                       <button
-                        onClick={() => setShowForm(!showForm)}
+                        onClick={() =>
+                          setShowForm(!showForm)
+                        }
                         className="mt-3 bg-black text-white px-3 py-2 rounded"
                       >
                         + Add Address
@@ -330,28 +399,37 @@ const CartPage = () => {
                         <div className="mt-4 space-y-2">
                           <input
                             placeholder="Name"
-                            className="w-full border p-2"
+                            className="w-full border p-2 rounded"
                             value={form.name}
                             onChange={(e) =>
-                              setForm({ ...form, name: e.target.value })
+                              setForm({
+                                ...form,
+                                name: e.target.value,
+                              })
                             }
                           />
 
                           <input
                             placeholder="Address"
-                            className="w-full border p-2"
+                            className="w-full border p-2 rounded"
                             value={form.address}
                             onChange={(e) =>
-                              setForm({ ...form, address: e.target.value })
+                              setForm({
+                                ...form,
+                                address: e.target.value,
+                              })
                             }
                           />
 
                           <input
                             placeholder="City"
-                            className="w-full border p-2"
+                            className="w-full border p-2 rounded"
                             value={form.city}
                             onChange={(e) =>
-                              setForm({ ...form, city: e.target.value })
+                              setForm({
+                                ...form,
+                                city: e.target.value,
+                              })
                             }
                           />
 
