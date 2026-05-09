@@ -241,6 +241,9 @@ const CartPage = () => {
   return (
     <div className="bg-gray-50 pb-20">
       <Container>
+        <h1 className="text-5xl text-red-500">
+          NEW CART CODE LIVE
+        </h1>
         {groupedItems?.length ? (
           <>
             <div className="flex items-center gap-2 py-5">
