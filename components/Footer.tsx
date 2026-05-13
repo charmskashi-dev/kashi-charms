@@ -84,24 +84,6 @@ const Footer = () => {
 
         </div>
 
-        {/* 🔥 PAYU COMPLIANCE BLOCK */}
-        <div className="py-6 border-t text-xs text-gray-500 space-y-1">
-          <p className="font-medium text-gray-700">
-            Business Information (For Verification)
-          </p>
-
-          <p>
-            PAN Holder Name: <span className="font-medium">GEETA SHARMA</span>
-          </p>
-
-          <p>
-            Address:{" "}
-            <span className="font-medium">
-              SH-15/78, NEW ASHOK VIHAR COLONY, SHIVPUR BYPASS ROAD, SHIVPUR, VARANASI, UTTAR PRADESH, INDIA, 221003
-            </span>
-          </p>
-        </div>
-
         {/* COPYRIGHT */}
         <div className="py-4 text-center text-sm text-gray-600">
           © {new Date().getFullYear()} <Logo className="text-sm inline-block" />. All

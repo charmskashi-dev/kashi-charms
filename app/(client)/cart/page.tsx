@@ -191,44 +191,52 @@ const CartPage = () => {
       }
 
       // ONLINE PAYMENT
-      const payuRes = await fetch("/api/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: res.totalPrice,
-          name: user.fullName,
-          email:
-            user.emailAddresses[0]?.emailAddress,
-          phone:
-            user.phoneNumbers?.[0]?.phoneNumber ||
-            "9999999999",
-        }),
-      });
+const payuRes = await fetch("/api/payu/initiate", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    amount: res.totalPrice.toString(),
+    firstname: user.fullName || "Customer",
+    email:
+      user.emailAddresses[0]?.emailAddress ||
+      "",
+    phone:
+      user.phoneNumbers?.[0]?.phoneNumber ||
+      "9999999999",
+    productinfo: "Kashi Charms Order",
+  }),
+});
 
-      const data = await payuRes.json();
+const data = await payuRes.json();
 
-      const paymentForm = document.createElement("form");
+if (data.error) {
+  throw new Error(data.error);
+}
 
-      paymentForm.method = "POST";
+const paymentForm = document.createElement("form");
 
-      paymentForm.action =
-        "https://secure.payu.in/_payment";
+paymentForm.method = "POST";
 
-      Object.entries(data).forEach(([key, value]) => {
-        const input = document.createElement("input");
+paymentForm.action =
+  "https://secure.payu.in/_payment";
 
-        input.name = key;
+Object.entries(data).forEach(([key, value]) => {
+  const input = document.createElement("input");
 
-        input.value = String(value);
+  input.type = "hidden";
 
-        paymentForm.appendChild(input);
-      });
+  input.name = key;
 
-      document.body.appendChild(paymentForm);
+  input.value = String(value);
 
-      paymentForm.submit();
+  paymentForm.appendChild(input);
+});
+
+document.body.appendChild(paymentForm);
+
+paymentForm.submit();
     } catch (err) {
       console.error(err);
 
