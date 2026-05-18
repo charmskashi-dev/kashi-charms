@@ -2,69 +2,196 @@
 
 import { backendClient } from "@/sanity/lib/backendClient";
 
-// ✅ CREATE ORDER
+// ======================================
+// CREATE ORDER
+// ======================================
+
 export default async function createCheckoutSession(
   items: any[],
   metadata: any
 ) {
   try {
-    const totalPrice = items.reduce((acc, item) => {
-      return acc + (item.product.price || 0) * item.quantity;
-    }, 0);
+    // =========================
+    // PRODUCT SUBTOTAL
+    // =========================
 
-    const products = items.map((item) => ({
-      _key: crypto.randomUUID(),
-      product: {
-        _type: "reference",
-        _ref: item.product._id,
+    const subtotal = items.reduce(
+      (acc, item) => {
+        return (
+          acc +
+          (item.product.price || 0) *
+            item.quantity
+        );
       },
-      quantity: item.quantity,
-    }));
+      0
+    );
+
+    // =========================
+    // SHIPPING
+    // =========================
+
+    const SHIPPING_CHARGE = 60;
+
+    const FREE_SHIPPING_THRESHOLD = 499;
+
+    const shippingAmount =
+      subtotal >=
+      FREE_SHIPPING_THRESHOLD
+        ? 0
+        : SHIPPING_CHARGE;
+
+    // =========================
+    // DISCOUNT
+    // =========================
+
+    const discountAmount =
+      metadata.discountAmount || 0;
+
+    // =========================
+    // FINAL TOTAL
+    // =========================
+
+    const totalAmount =
+      subtotal +
+      shippingAmount -
+      discountAmount;
+
+    // =========================
+    // PRODUCTS
+    // =========================
+
+    const products = items.map(
+      (item) => ({
+        _key: crypto.randomUUID(),
+
+        product: {
+          _type: "reference",
+
+          _ref: item.product._id,
+        },
+
+        quantity: item.quantity,
+      })
+    );
+
+    // =========================
+    // ORDER DOCUMENT
+    // =========================
 
     const orderDoc = {
       _type: "order",
-      orderNumber: metadata.orderNumber,
-      customerName: metadata.customerName,
-      email: metadata.customerEmail,
-      clerkUserId: metadata.clerkUserId || "",
+
+      orderNumber:
+        metadata.orderNumber,
+
+      customerName:
+        metadata.customerName,
+
+      email:
+        metadata.customerEmail,
+
+      clerkUserId:
+        metadata.clerkUserId ||
+        "",
+
+      address:
+        metadata.address || null,
+
       products,
-      totalPrice,
+
+      // =========================
+      // PRICING
+      // =========================
+
+      subtotal,
+
+      shippingAmount,
+
+      amountDiscount:
+        discountAmount,
+
+      couponCode:
+        metadata.couponCode || "",
+
+      totalPrice: totalAmount,
+
       currency: "INR",
+
+      // =========================
+      // STATUS
+      // =========================
+
       status: "pending",
-      paymentMethod: "unpaid", // ✅ added for consistency
-      orderDate: new Date().toISOString(),
+
+      paymentMethod:
+        metadata.paymentMethod ||
+        "unpaid",
+
+      orderDate:
+        new Date().toISOString(),
     };
 
-    const createdOrder = await backendClient.create(orderDoc);
+    // =========================
+    // CREATE ORDER
+    // =========================
+
+    const createdOrder =
+      await backendClient.create(
+        orderDoc
+      );
 
     return {
       success: true,
-      orderId: createdOrder._id,
-      totalPrice,
+
+      orderId:
+        createdOrder._id,
+
+      subtotal,
+
+      shippingAmount,
+
+      discountAmount,
+
+      totalPrice: totalAmount,
     };
   } catch (error) {
     console.error(error);
-    return { success: false };
+
+    return {
+      success: false,
+    };
   }
 }
 
-// ✅ FIXED FUNCTION (NOW ACCEPTS 2 ARGS)
-export const markOrderAsPaid = async (
-  orderId: string,
-  paymentMethod?: string
-) => {
-  try {
-    await backendClient
-      .patch(orderId)
-      .set({
-        status: "paid",
-        paymentMethod: paymentMethod || "manual-payment", // ✅ supports your call
-      })
-      .commit();
+// ======================================
+// MARK ORDER AS PAID
+// ======================================
 
-    return { success: true };
-  } catch (error) {
-    console.error(error);
-    return { success: false };
-  }
-};
+export const markOrderAsPaid =
+  async (
+    orderId: string,
+    paymentMethod?: string
+  ) => {
+    try {
+      await backendClient
+        .patch(orderId)
+        .set({
+          status: "processing",
+
+          paymentMethod:
+            paymentMethod ||
+            "online",
+        })
+        .commit();
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error(error);
+
+      return {
+        success: false,
+      };
+    }
+  };
