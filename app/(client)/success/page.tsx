@@ -8,8 +8,9 @@ import Container from "@/components/Container";
 
 import useStore from "@/store";
 
+import { motion } from "framer-motion";
+
 import {
-  CheckCircle2,
   PackageCheck,
   Sparkles,
   ShieldCheck,
@@ -42,13 +43,13 @@ export default function SuccessPage() {
       py-16
     "
     >
-      {/* BACKGROUND GLOW */}
+      {/* BACKGROUND GLOWS */}
 
       <div
         className="
         absolute
-        -top-25
-        -left-25
+        -top-30
+        -left-30
         w-87.5
         h-87.5
         bg-amber-200/30
@@ -61,7 +62,7 @@ export default function SuccessPage() {
         className="
         absolute
         -bottom-30
-        -right-25
+        -right-30
         w-87.5
         h-87.5
         bg-rose-200/30
@@ -70,53 +71,105 @@ export default function SuccessPage() {
       "
       />
 
+      {/* FLOATING SPARKLES */}
+
+      <motion.div
+        animate={{
+          y: [0, -12, 0],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 4,
+        }}
+        className="
+        absolute
+        top-20
+        left-10
+        text-amber-400
+      "
+      >
+        <Sparkles size={26} />
+      </motion.div>
+
+      <motion.div
+        animate={{
+          y: [0, 10, 0],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 5,
+        }}
+        className="
+        absolute
+        bottom-24
+        right-10
+        text-rose-400
+      "
+      >
+        <Sparkles size={22} />
+      </motion.div>
+
       <Container className="max-w-2xl relative z-10">
-        <div
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 50,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 0.7,
+          }}
           className="
-          bg-white/90
-          backdrop-blur-xl
-          rounded-[36px]
+          bg-white/75
+          backdrop-blur-2xl
+          rounded-[40px]
           shadow-[0_20px_80px_rgba(0,0,0,0.08)]
           border
           border-white/40
-          p-8
-          md:p-12
-          text-center
+          overflow-hidden
         "
         >
-          {/* SUCCESS ICON */}
+          {/* VIDEO SECTION */}
 
-          <div className="relative w-fit mx-auto">
+          <div className="relative">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="
+              w-full
+              h-80
+              object-cover
+            "
+            >
+              <source
+                src="/videos/success-video.mp4"
+                type="video/mp4"
+              />
+            </video>
+
+            {/* OVERLAY */}
+
             <div
               className="
               absolute
               inset-0
-              bg-green-400/30
-              blur-2xl
-              rounded-full
+              bg-linear-to-t
+              from-black/20
+              to-transparent
             "
             />
-
-            <div
-              className="
-              relative
-              bg-green-100
-              p-5
-              rounded-full
-              border
-              border-green-200
-            "
-            >
-              <CheckCircle2
-                size={70}
-                className="text-green-600"
-              />
-            </div>
           </div>
 
-          {/* TITLE */}
+          {/* CONTENT */}
 
-          <div className="mt-8">
+          <div className="p-8 md:p-10 text-center">
+            {/* BRAND */}
+
             <div
               className="
               flex
@@ -129,14 +182,23 @@ export default function SuccessPage() {
             >
               <Sparkles size={18} />
 
-              <span className="text-sm font-medium tracking-wide uppercase">
+              <span
+                className="
+                uppercase
+                tracking-[0.25em]
+                text-xs
+                font-medium
+              "
+              >
                 Kashi Charms
               </span>
             </div>
 
+            {/* TITLE */}
+
             <h1
               className="
-              text-3xl
+              text-4xl
               md:text-5xl
               font-semibold
               tracking-tight
@@ -146,6 +208,8 @@ export default function SuccessPage() {
             >
               Order Confirmed ✨
             </h1>
+
+            {/* MESSAGE */}
 
             <p
               className="
@@ -158,154 +222,177 @@ export default function SuccessPage() {
               mx-auto
             "
             >
-              Your handcrafted jewellery is
-              now being prepared with care
-              and elegance. Thank you for
-              choosing Kashi Charms.
+              Your handcrafted jewellery
+              is now being prepared with
+              elegance, care, and detail.
             </p>
-          </div>
 
-          {/* PREMIUM INFO CARDS */}
+            {/* INFO CARDS */}
 
-          <div className="grid md:grid-cols-2 gap-4 mt-10">
-            <div
-              className="
-              bg-[#faf7f2]
-              border
-              border-black/5
-              rounded-3xl
-              p-5
-              text-left
-            "
-            >
-              <div className="flex items-center gap-3">
-                <div className="bg-black text-white p-2 rounded-xl">
-                  <PackageCheck size={18} />
+            <div className="grid md:grid-cols-2 gap-4 mt-10">
+              {/* DELIVERY */}
+
+              <div
+                className="
+                bg-[#faf7f2]
+                border
+                border-black/5
+                rounded-3xl
+                p-5
+                text-left
+              "
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="
+                    bg-black
+                    text-white
+                    p-2.5
+                    rounded-xl
+                  "
+                  >
+                    <PackageCheck size={18} />
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-sm">
+                      Estimated Delivery
+                    </p>
+
+                    <p className="text-gray-500 text-sm mt-1">
+                      Arriving within
+                      4–7 business days
+                    </p>
+                  </div>
                 </div>
+              </div>
 
-                <div>
-                  <p className="font-semibold text-sm">
-                    Estimated Delivery
-                  </p>
+              {/* PAYMENT */}
 
-                  <p className="text-gray-500 text-sm">
-                    Within 4-7 business days
-                  </p>
+              <div
+                className="
+                bg-[#faf7f2]
+                border
+                border-black/5
+                rounded-3xl
+                p-5
+                text-left
+              "
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="
+                    bg-black
+                    text-white
+                    p-2.5
+                    rounded-xl
+                  "
+                  >
+                    <ShieldCheck size={18} />
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-sm">
+                      Secure Checkout
+                    </p>
+
+                    <p className="text-gray-500 text-sm mt-1">
+                      Payment verified
+                      successfully
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* PREMIUM MESSAGE */}
+
             <div
               className="
-              bg-[#faf7f2]
+              mt-8
+              bg-linear-to-r
+              from-amber-50
+              to-rose-50
               border
-              border-black/5
+              border-amber-100
               rounded-3xl
               p-5
-              text-left
             "
             >
-              <div className="flex items-center gap-3">
-                <div className="bg-black text-white p-2 rounded-xl">
-                  <ShieldCheck size={18} />
-                </div>
-
-                <div>
-                  <p className="font-semibold text-sm">
-                    Secure Checkout
-                  </p>
-
-                  <p className="text-gray-500 text-sm">
-                    Payment verified safely
-                  </p>
-                </div>
-              </div>
+              <p
+                className="
+                text-sm
+                text-gray-700
+                leading-relaxed
+              "
+              >
+                We’re excited for your
+                Kashi Charms piece to
+                reach you 💖
+              </p>
             </div>
-          </div>
 
-          {/* MESSAGE */}
+            {/* BUTTONS */}
 
-          <div
-            className="
-            mt-8
-            bg-linear-to-r
-            from-amber-50
-            to-rose-50
-            border
-            border-amber-100
-            rounded-3xl
-            p-5
-          "
-          >
-            <p className="text-sm text-gray-700 leading-relaxed">
-              You’ll receive order updates
-              and shipping confirmation soon.
-              We’re excited for your Kashi
-              Charms piece to reach you 💖
+            <div className="flex flex-col md:flex-row gap-4 mt-10">
+              <Link
+                href="/orders"
+                className="
+                flex-1
+                bg-black
+                text-white
+                py-4
+                rounded-2xl
+                font-medium
+                hover:opacity-90
+                transition-all
+                duration-300
+                flex
+                items-center
+                justify-center
+                gap-2
+                shadow-lg
+              "
+              >
+                View My Orders
+
+                <ArrowRight size={18} />
+              </Link>
+
+              <Link
+                href="/shop"
+                className="
+                flex-1
+                bg-white
+                border
+                border-black/10
+                py-4
+                rounded-2xl
+                font-medium
+                hover:bg-gray-50
+                transition-all
+                duration-300
+              "
+              >
+                Continue Shopping
+              </Link>
+            </div>
+
+            {/* FOOTER */}
+
+            <p
+              className="
+              mt-8
+              text-xs
+              tracking-[0.2em]
+              uppercase
+              text-gray-400
+            "
+            >
+              Handcrafted with elegance
             </p>
           </div>
-
-          {/* ACTION BUTTONS */}
-
-          <div className="flex flex-col md:flex-row gap-4 mt-10">
-            <Link
-              href="/orders"
-              className="
-              flex-1
-              bg-black
-              text-white
-              py-4
-              rounded-2xl
-              font-medium
-              hover:opacity-90
-              transition-all
-              duration-300
-              flex
-              items-center
-              justify-center
-              gap-2
-              shadow-lg
-            "
-            >
-              View My Orders
-
-              <ArrowRight size={18} />
-            </Link>
-
-            <Link
-              href="/shop"
-              className="
-              flex-1
-              bg-white
-              border
-              border-black/10
-              py-4
-              rounded-2xl
-              font-medium
-              hover:bg-gray-50
-              transition-all
-              duration-300
-            "
-            >
-              Continue Shopping
-            </Link>
-          </div>
-
-          {/* FOOTER */}
-
-          <p
-            className="
-            mt-8
-            text-xs
-            tracking-wide
-            uppercase
-            text-gray-400
-          "
-          >
-            Handcrafted with elegance •
-            Kashi Charms
-          </p>
-        </div>
+        </motion.div>
       </Container>
     </div>
   );
