@@ -40,7 +40,8 @@ export default function SuccessPage() {
       flex
       items-center
       justify-center
-      py-16
+      py-8
+      px-4
     "
     >
       {/* BACKGROUND GLOWS */}
@@ -50,8 +51,8 @@ export default function SuccessPage() {
         absolute
         -top-30
         -left-30
-        w-87.5
-        h-87.5
+        w-[320px]
+        h-80
         bg-amber-200/30
         blur-3xl
         rounded-full
@@ -63,8 +64,8 @@ export default function SuccessPage() {
         absolute
         -bottom-30
         -right-30
-        w-87.5
-        h-87.5
+        w-[320px]
+        h-80
         bg-rose-200/30
         blur-3xl
         rounded-full
@@ -83,12 +84,12 @@ export default function SuccessPage() {
         }}
         className="
         absolute
-        top-20
-        left-10
+        top-16
+        left-6
         text-amber-400
       "
       >
-        <Sparkles size={26} />
+        <Sparkles size={24} />
       </motion.div>
 
       <motion.div
@@ -101,19 +102,19 @@ export default function SuccessPage() {
         }}
         className="
         absolute
-        bottom-24
-        right-10
+        bottom-20
+        right-6
         text-rose-400
       "
       >
-        <Sparkles size={22} />
+        <Sparkles size={20} />
       </motion.div>
 
       <Container className="max-w-2xl relative z-10">
         <motion.div
           initial={{
             opacity: 0,
-            y: 50,
+            y: 40,
           }}
           animate={{
             opacity: 1,
@@ -123,9 +124,9 @@ export default function SuccessPage() {
             duration: 0.7,
           }}
           className="
-          bg-white/75
+          bg-white/80
           backdrop-blur-2xl
-          rounded-[40px]
+          rounded-[36px]
           shadow-[0_20px_80px_rgba(0,0,0,0.08)]
           border
           border-white/40
@@ -140,9 +141,11 @@ export default function SuccessPage() {
               muted
               loop
               playsInline
+              preload="auto"
               className="
               w-full
-              h-80
+              h-55
+              md:h-65
               object-cover
             "
             >
@@ -163,11 +166,21 @@ export default function SuccessPage() {
               to-transparent
             "
             />
+
+            {/* EXTRA CINEMATIC SHADE */}
+
+            <div
+              className="
+              absolute
+              inset-0
+              bg-black/10
+            "
+            />
           </div>
 
           {/* CONTENT */}
 
-          <div className="p-8 md:p-10 text-center">
+          <div className="p-6 md:p-8 text-center">
             {/* BRAND */}
 
             <div
@@ -180,13 +193,13 @@ export default function SuccessPage() {
               mb-3
             "
             >
-              <Sparkles size={18} />
+              <Sparkles size={16} />
 
               <span
                 className="
                 uppercase
                 tracking-[0.25em]
-                text-xs
+                text-[11px]
                 font-medium
               "
               >
@@ -198,7 +211,7 @@ export default function SuccessPage() {
 
             <h1
               className="
-              text-4xl
+              text-3xl
               md:text-5xl
               font-semibold
               tracking-tight
@@ -213,10 +226,10 @@ export default function SuccessPage() {
 
             <p
               className="
-              mt-5
+              mt-4
               text-gray-600
-              text-base
-              md:text-lg
+              text-sm
+              md:text-base
               leading-relaxed
               max-w-xl
               mx-auto
@@ -229,7 +242,7 @@ export default function SuccessPage() {
 
             {/* INFO CARDS */}
 
-            <div className="grid md:grid-cols-2 gap-4 mt-10">
+            <div className="grid md:grid-cols-2 gap-4 mt-8">
               {/* DELIVERY */}
 
               <div
@@ -238,7 +251,7 @@ export default function SuccessPage() {
                 border
                 border-black/5
                 rounded-3xl
-                p-5
+                p-4
                 text-left
               "
               >
@@ -251,7 +264,7 @@ export default function SuccessPage() {
                     rounded-xl
                   "
                   >
-                    <PackageCheck size={18} />
+                    <PackageCheck size={16} />
                   </div>
 
                   <div>
@@ -259,7 +272,7 @@ export default function SuccessPage() {
                       Estimated Delivery
                     </p>
 
-                    <p className="text-gray-500 text-sm mt-1">
+                    <p className="text-gray-500 text-xs mt-1">
                       Arriving within
                       4–7 business days
                     </p>
@@ -275,7 +288,7 @@ export default function SuccessPage() {
                 border
                 border-black/5
                 rounded-3xl
-                p-5
+                p-4
                 text-left
               "
               >
@@ -288,7 +301,7 @@ export default function SuccessPage() {
                     rounded-xl
                   "
                   >
-                    <ShieldCheck size={18} />
+                    <ShieldCheck size={16} />
                   </div>
 
                   <div>
@@ -296,7 +309,7 @@ export default function SuccessPage() {
                       Secure Checkout
                     </p>
 
-                    <p className="text-gray-500 text-sm mt-1">
+                    <p className="text-gray-500 text-xs mt-1">
                       Payment verified
                       successfully
                     </p>
@@ -309,14 +322,14 @@ export default function SuccessPage() {
 
             <div
               className="
-              mt-8
+              mt-6
               bg-linear-to-r
               from-amber-50
               to-rose-50
               border
               border-amber-100
               rounded-3xl
-              p-5
+              p-4
             "
             >
               <p
@@ -334,14 +347,14 @@ export default function SuccessPage() {
 
             {/* BUTTONS */}
 
-            <div className="flex flex-col md:flex-row gap-4 mt-10">
+            <div className="flex flex-col md:flex-row gap-4 mt-8">
               <Link
                 href="/orders"
                 className="
                 flex-1
                 bg-black
                 text-white
-                py-4
+                py-3.5
                 rounded-2xl
                 font-medium
                 hover:opacity-90
@@ -366,7 +379,7 @@ export default function SuccessPage() {
                 bg-white
                 border
                 border-black/10
-                py-4
+                py-3.5
                 rounded-2xl
                 font-medium
                 hover:bg-gray-50
@@ -382,8 +395,8 @@ export default function SuccessPage() {
 
             <p
               className="
-              mt-8
-              text-xs
+              mt-6
+              text-[10px]
               tracking-[0.2em]
               uppercase
               text-gray-400
