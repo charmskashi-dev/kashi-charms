@@ -1,18 +1,24 @@
 import Container from "@/components/Container";
+
 import OrdersComponent from "@/components/OrdersComponent";
+
 import { Button } from "@/components/ui/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/ui/card";
-import { ScrollArea, ScrollBar } from "@/components/ui/ui/scroll-area";
+
 import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/ui/table";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/ui/card";
+
 import { getMyOrders } from "@/sanity/queries";
+
 import { auth } from "@clerk/nextjs/server";
+
 import { FileX } from "lucide-react";
+
 import Link from "next/link";
+
 import { redirect } from "next/navigation";
 
 const OrdersPage = async () => {
@@ -27,58 +33,99 @@ const OrdersPage = async () => {
   return (
     <Container className="py-10">
       {orders?.length ? (
-        <Card className="w-full border-0 shadow-none bg-transparent">
-          <CardHeader className="px-0">
-  <div className="flex items-center gap-3">
-    <div className="bg-black text-white p-3 rounded-2xl">
-      📦
-    </div>
+        <Card
+          className="
+          w-full
+          border-0
+          shadow-none
+          bg-transparent
+        "
+        >
+          {/* HEADER */}
 
-    <div>
-      <CardTitle className="text-3xl font-semibold tracking-tight">
-        My Orders
-      </CardTitle>
+          <CardHeader className="px-0 pb-8">
+            <div className="flex items-center gap-4">
+              <div
+                className="
+                bg-black
+                text-white
+                p-4
+                rounded-3xl
+                shadow-lg
+              "
+              >
+                📦
+              </div>
 
-      <p className="text-sm text-gray-500 mt-1">
-        Track all your Kashi Charms orders ✨
-      </p>
-    </div>
-  </div>
-</CardHeader>
+              <div>
+                <CardTitle
+                  className="
+                  text-3xl
+                  md:text-4xl
+                  font-semibold
+                  tracking-tight
+                "
+                >
+                  My Orders
+                </CardTitle>
 
-          <CardContent>
-            <ScrollArea>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order #</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <p className="text-sm text-gray-500 mt-2">
+                  Track all your Kashi Charms
+                  orders ✨
+                </p>
+              </div>
+            </div>
+          </CardHeader>
 
-                <OrdersComponent orders={orders} />
-              </Table>
+          {/* ORDERS */}
 
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+          <CardContent className="px-0">
+            <OrdersComponent orders={orders} />
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12">
-          <FileX className="h-24 w-24 text-gray-400 mb-4" />
+        <div
+          className="
+          flex
+          flex-col
+          items-center
+          justify-center
+          py-24
+        "
+        >
+          <div
+            className="
+            bg-gray-100
+            p-6
+            rounded-full
+            mb-6
+          "
+          >
+            <FileX className="h-16 w-16 text-gray-400" />
+          </div>
 
-          <h2 className="text-2xl font-semibold">No orders found</h2>
+          <h2 className="text-3xl font-semibold">
+            No orders yet
+          </h2>
 
-          <p className="mt-2 text-sm text-gray-600 text-center max-w-md">
-            You haven’t placed any orders yet. Start shopping now!
+          <p
+            className="
+            mt-3
+            text-gray-500
+            text-center
+            max-w-md
+            leading-relaxed
+          "
+          >
+            Looks like you haven’t placed
+            any orders from Kashi Charms
+            yet ✨
           </p>
 
-          <Button asChild className="mt-6">
-            <Link href="/">Browse Products</Link>
+          <Button asChild className="mt-8 h-12 px-8 rounded-xl">
+            <Link href="/shop">
+              Start Shopping
+            </Link>
           </Button>
         </div>
       )}
