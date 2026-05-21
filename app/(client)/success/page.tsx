@@ -41,6 +41,7 @@ export default function SuccessPage() {
       items-center
       justify-center
       py-8
+      md:py-16
       px-4
     "
     >
@@ -49,10 +50,12 @@ export default function SuccessPage() {
       <div
         className="
         absolute
-        -top-30
-        -left-30
-        w-[320px]
-        h-80
+        -top-28
+        -left-28
+        w-[280px]
+        md:w-[350px]
+        h-[280px]
+        md:h-[350px]
         bg-amber-200/30
         blur-3xl
         rounded-full
@@ -62,10 +65,12 @@ export default function SuccessPage() {
       <div
         className="
         absolute
-        -bottom-30
-        -right-30
-        w-[320px]
-        h-80
+        -bottom-28
+        -right-28
+        w-[280px]
+        md:w-[350px]
+        h-[280px]
+        md:h-[350px]
         bg-rose-200/30
         blur-3xl
         rounded-full
@@ -84,12 +89,12 @@ export default function SuccessPage() {
         }}
         className="
         absolute
-        top-16
-        left-6
+        top-14
+        left-5
         text-amber-400
       "
       >
-        <Sparkles size={24} />
+        <Sparkles size={22} />
       </motion.div>
 
       <motion.div
@@ -103,14 +108,14 @@ export default function SuccessPage() {
         className="
         absolute
         bottom-20
-        right-6
+        right-5
         text-rose-400
       "
       >
         <Sparkles size={20} />
       </motion.div>
 
-      <Container className="max-w-2xl relative z-10">
+      <Container className="max-w-md md:max-w-2xl relative z-10">
         <motion.div
           initial={{
             opacity: 0,
@@ -124,9 +129,9 @@ export default function SuccessPage() {
             duration: 0.7,
           }}
           className="
-          bg-white/80
+          bg-white/85
           backdrop-blur-2xl
-          rounded-[36px]
+          rounded-[32px]
           shadow-[0_20px_80px_rgba(0,0,0,0.08)]
           border
           border-white/40
@@ -144,8 +149,8 @@ export default function SuccessPage() {
               preload="auto"
               className="
               w-full
-              h-55
-              md:h-65
+              h-[260px]
+              md:h-[340px]
               object-cover
             "
             >
@@ -161,8 +166,9 @@ export default function SuccessPage() {
               className="
               absolute
               inset-0
-              bg-linear-to-t
-              from-black/20
+              bg-gradient-to-t
+              from-black/30
+              via-transparent
               to-transparent
             "
             />
@@ -180,7 +186,7 @@ export default function SuccessPage() {
 
           {/* CONTENT */}
 
-          <div className="p-6 md:p-8 text-center">
+          <div className="p-6 md:p-9 text-center">
             {/* BRAND */}
 
             <div
