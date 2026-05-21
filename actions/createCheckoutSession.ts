@@ -57,6 +57,14 @@ export default async function createCheckoutSession(
       discountAmount;
 
     // =========================
+    // AUTO GENERATED ORDER NUMBER
+    // =========================
+
+    const orderNumber = `KC-${Date.now()
+      .toString()
+      .slice(-8)}`;
+
+    // =========================
     // PRODUCTS
     // =========================
 
@@ -81,8 +89,11 @@ export default async function createCheckoutSession(
     const orderDoc = {
       _type: "order",
 
-      orderNumber:
-        metadata.orderNumber,
+      // =========================
+      // ORDER INFO
+      // =========================
+
+      orderNumber,
 
       customerName:
         metadata.customerName,
@@ -94,8 +105,16 @@ export default async function createCheckoutSession(
         metadata.clerkUserId ||
         "",
 
+      // =========================
+      // ADDRESS
+      // =========================
+
       address:
         metadata.address || null,
+
+      // =========================
+      // PRODUCTS
+      // =========================
 
       products,
 
@@ -127,6 +146,10 @@ export default async function createCheckoutSession(
         metadata.paymentMethod ||
         "unpaid",
 
+      // =========================
+      // DATE
+      // =========================
+
       orderDate:
         new Date().toISOString(),
     };
@@ -145,6 +168,8 @@ export default async function createCheckoutSession(
 
       orderId:
         createdOrder._id,
+
+      orderNumber,
 
       subtotal,
 
