@@ -40,8 +40,8 @@ export default function SuccessPage() {
       flex
       items-center
       justify-center
-      py-8
-      md:py-16
+      py-6
+      md:py-10
       px-4
     "
     >
@@ -50,12 +50,10 @@ export default function SuccessPage() {
       <div
         className="
         absolute
-        -top-28
-        -left-28
-        w-[280px]
-        md:w-[350px]
-        h-[280px]
-        md:h-[350px]
+        -top-24
+        -left-24
+        w-[250px]
+        h-[250px]
         bg-amber-200/30
         blur-3xl
         rounded-full
@@ -65,12 +63,10 @@ export default function SuccessPage() {
       <div
         className="
         absolute
-        -bottom-28
-        -right-28
-        w-[280px]
-        md:w-[350px]
-        h-[280px]
-        md:h-[350px]
+        -bottom-24
+        -right-24
+        w-[250px]
+        h-[250px]
         bg-rose-200/30
         blur-3xl
         rounded-full
@@ -81,7 +77,7 @@ export default function SuccessPage() {
 
       <motion.div
         animate={{
-          y: [0, -12, 0],
+          y: [0, -10, 0],
         }}
         transition={{
           repeat: Infinity,
@@ -89,12 +85,12 @@ export default function SuccessPage() {
         }}
         className="
         absolute
-        top-14
+        top-12
         left-5
         text-amber-400
       "
       >
-        <Sparkles size={22} />
+        <Sparkles size={20} />
       </motion.div>
 
       <motion.div
@@ -112,10 +108,12 @@ export default function SuccessPage() {
         text-rose-400
       "
       >
-        <Sparkles size={20} />
+        <Sparkles size={18} />
       </motion.div>
 
-      <Container className="max-w-md md:max-w-2xl relative z-10">
+      {/* MAIN CARD */}
+
+      <Container className="max-w-md md:max-w-xl relative z-10">
         <motion.div
           initial={{
             opacity: 0,
@@ -130,7 +128,7 @@ export default function SuccessPage() {
           }}
           className="
           bg-white/85
-          backdrop-blur-2xl
+          backdrop-blur-xl
           rounded-[32px]
           shadow-[0_20px_80px_rgba(0,0,0,0.08)]
           border
@@ -140,18 +138,30 @@ export default function SuccessPage() {
         >
           {/* VIDEO SECTION */}
 
-          <div className="relative">
+          <div
+            className="
+            relative
+            flex
+            items-center
+            justify-center
+            bg-[#f8f5f0]
+            px-4
+            pt-5
+          "
+          >
             <video
               autoPlay
               muted
               loop
               playsInline
-              preload="auto"
+              preload="metadata"
               className="
-              w-full
-              h-[260px]
-              md:h-[340px]
-              object-cover
+              w-auto
+              h-auto
+              max-h-[180px]
+              md:max-h-[240px]
+              rounded-2xl
+              object-contain
             "
             >
               <source
@@ -159,34 +169,11 @@ export default function SuccessPage() {
                 type="video/mp4"
               />
             </video>
-
-            {/* OVERLAY */}
-
-            <div
-              className="
-              absolute
-              inset-0
-              bg-gradient-to-t
-              from-black/30
-              via-transparent
-              to-transparent
-            "
-            />
-
-            {/* EXTRA CINEMATIC SHADE */}
-
-            <div
-              className="
-              absolute
-              inset-0
-              bg-black/10
-            "
-            />
           </div>
 
           {/* CONTENT */}
 
-          <div className="p-6 md:p-9 text-center">
+          <div className="px-6 pb-6 md:px-8 md:pb-8 text-center">
             {/* BRAND */}
 
             <div
@@ -196,16 +183,17 @@ export default function SuccessPage() {
               justify-center
               gap-2
               text-amber-600
+              mt-2
               mb-3
             "
             >
-              <Sparkles size={16} />
+              <Sparkles size={15} />
 
               <span
                 className="
                 uppercase
                 tracking-[0.25em]
-                text-[11px]
+                text-[10px]
                 font-medium
               "
               >
@@ -218,7 +206,7 @@ export default function SuccessPage() {
             <h1
               className="
               text-3xl
-              md:text-5xl
+              md:text-4xl
               font-semibold
               tracking-tight
               text-neutral-900
@@ -237,7 +225,7 @@ export default function SuccessPage() {
               text-sm
               md:text-base
               leading-relaxed
-              max-w-xl
+              max-w-md
               mx-auto
             "
             >
@@ -248,7 +236,7 @@ export default function SuccessPage() {
 
             {/* INFO CARDS */}
 
-            <div className="grid md:grid-cols-2 gap-4 mt-8">
+            <div className="grid gap-3 mt-7">
               {/* DELIVERY */}
 
               <div
@@ -256,7 +244,7 @@ export default function SuccessPage() {
                 bg-[#faf7f2]
                 border
                 border-black/5
-                rounded-3xl
+                rounded-2xl
                 p-4
                 text-left
               "
@@ -270,7 +258,7 @@ export default function SuccessPage() {
                     rounded-xl
                   "
                   >
-                    <PackageCheck size={16} />
+                    <PackageCheck size={15} />
                   </div>
 
                   <div>
@@ -293,7 +281,7 @@ export default function SuccessPage() {
                 bg-[#faf7f2]
                 border
                 border-black/5
-                rounded-3xl
+                rounded-2xl
                 p-4
                 text-left
               "
@@ -307,7 +295,7 @@ export default function SuccessPage() {
                     rounded-xl
                   "
                   >
-                    <ShieldCheck size={16} />
+                    <ShieldCheck size={15} />
                   </div>
 
                   <div>
@@ -324,17 +312,17 @@ export default function SuccessPage() {
               </div>
             </div>
 
-            {/* PREMIUM MESSAGE */}
+            {/* MESSAGE BOX */}
 
             <div
               className="
               mt-6
-              bg-linear-to-r
+              bg-gradient-to-r
               from-amber-50
               to-rose-50
               border
               border-amber-100
-              rounded-3xl
+              rounded-2xl
               p-4
             "
             >
@@ -353,11 +341,10 @@ export default function SuccessPage() {
 
             {/* BUTTONS */}
 
-            <div className="flex flex-col md:flex-row gap-4 mt-8">
+            <div className="flex flex-col gap-3 mt-7">
               <Link
                 href="/orders"
                 className="
-                flex-1
                 bg-black
                 text-white
                 py-3.5
@@ -375,13 +362,12 @@ export default function SuccessPage() {
               >
                 View My Orders
 
-                <ArrowRight size={18} />
+                <ArrowRight size={17} />
               </Link>
 
               <Link
                 href="/shop"
                 className="
-                flex-1
                 bg-white
                 border
                 border-black/10
