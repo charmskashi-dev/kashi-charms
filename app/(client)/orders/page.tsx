@@ -27,10 +27,24 @@ const OrdersPage = async () => {
   return (
     <Container className="py-10">
       {orders?.length ? (
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Your Orders</CardTitle>
-          </CardHeader>
+        <Card className="w-full border-0 shadow-none bg-transparent">
+          <CardHeader className="px-0">
+  <div className="flex items-center gap-3">
+    <div className="bg-black text-white p-3 rounded-2xl">
+      📦
+    </div>
+
+    <div>
+      <CardTitle className="text-3xl font-semibold tracking-tight">
+        My Orders
+      </CardTitle>
+
+      <p className="text-sm text-gray-500 mt-1">
+        Track all your Kashi Charms orders ✨
+      </p>
+    </div>
+  </div>
+</CardHeader>
 
           <CardContent>
             <ScrollArea>
@@ -43,7 +57,6 @@ const OrdersPage = async () => {
                     <TableHead>Email</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
 
