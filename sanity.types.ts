@@ -174,6 +174,7 @@ export type Order = {
   _updatedAt: string;
   _rev: string;
   orderNumber?: string;
+  invoiceNumber?: string;
   clerkUserId?: string;
   customerName?: string;
   email?: string;
@@ -182,9 +183,13 @@ export type Order = {
     quantity?: number;
     _key: string;
   }>;
+  subtotal?: number;
+  shippingAmount?: number;
+  amountDiscount?: number;
+  couponCode?: string;
   totalPrice?: number;
   currency?: string;
-  amountDiscount?: number;
+  paymentMethod?: "cod" | "online" | "unpaid";
   address?: {
     name?: string;
     address?: string;
@@ -630,6 +635,7 @@ export type MY_ORDERS_QUERY_RESULT = Array<{
   _updatedAt: string;
   _rev: string;
   orderNumber?: string;
+  invoiceNumber?: string;
   clerkUserId?: string;
   customerName?: string;
   email?: string;
@@ -666,9 +672,13 @@ export type MY_ORDERS_QUERY_RESULT = Array<{
     quantity?: number;
     _key: string;
   }> | null;
+  subtotal?: number;
+  shippingAmount?: number;
+  amountDiscount?: number;
+  couponCode?: string;
   totalPrice?: number;
   currency?: string;
-  amountDiscount?: number;
+  paymentMethod?: "cod" | "online" | "unpaid";
   address?: {
     name?: string;
     address?: string;
