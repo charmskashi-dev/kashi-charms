@@ -1,8 +1,13 @@
 import { MY_ORDERS_QUERY_RESULT } from "@/sanity.types";
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/ui/dialog";
-import { Button } from "./ui/ui/button";
-import Link from "next/link";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/ui/dialog";
+
 import {
   Table,
   TableBody,
@@ -11,137 +16,371 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/ui/table";
+
 import Image from "next/image";
+
 import { urlFor } from "@/sanity/lib/image";
+
 import PriceFormatter from "./PriceFormatter";
 
 interface OrderDetailsDialogProps {
   order: MY_ORDERS_QUERY_RESULT[number] | null;
+
   isOpen: boolean;
+
   onClose: () => void;
 }
 
-const OrderDetailDialog: React.FC<OrderDetailsDialogProps> = ({
+const OrderDetailDialog: React.FC<
+  OrderDetailsDialogProps
+> = ({
   order,
   isOpen,
   onClose,
 }) => {
   if (!order) return null;
 
-  const orderAny = order as any; // ✅ FIX: safe cast for missing fields
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-y-scroll">
+    <Dialog
+      open={isOpen}
+      onOpenChange={onClose}
+    >
+      <DialogContent
+        className="
+        max-w-4xl
+        max-h-[90vh]
+        overflow-y-auto
+        rounded-3xl
+      "
+      >
+        {/* HEADER */}
+
         <DialogHeader>
-          <DialogTitle>Order Details - {order?.orderNumber}</DialogTitle>
+          <DialogTitle
+            className="
+            text-2xl
+            font-semibold
+            tracking-tight
+          "
+          >
+            Order Details
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-4">
-          <p>
-            <strong>Customer:</strong> {order.customerName}
-          </p>
-          <p>
-            <strong>Email:</strong> {order.email}
-          </p>
-          <p>
-            <strong>Date:</strong>{" "}
-            {order.orderDate && new Date(order.orderDate).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Status:</strong>{" "}
-            <span className="capitalize text-green-600 font-medium">
+        {/* ORDER INFO */}
+
+        <div
+          className="
+          mt-4
+          grid
+          md:grid-cols-2
+          gap-4
+        "
+        >
+          {/* ORDER NUMBER */}
+
+          <div
+            className="
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+          "
+          >
+            <p className="text-sm text-gray-500">
+              Order Number
+            </p>
+
+            <p className="font-semibold mt-1">
+              {order.orderNumber}
+            </p>
+          </div>
+
+          {/* INVOICE NUMBER */}
+
+          <div
+            className="
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+          "
+          >
+            <p className="text-sm text-gray-500">
+              Invoice Number
+            </p>
+
+            <p className="font-semibold mt-1">
+              {order.invoiceNumber ??
+                "Not Generated"}
+            </p>
+          </div>
+
+          {/* CUSTOMER */}
+
+          <div
+            className="
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+          "
+          >
+            <p className="text-sm text-gray-500">
+              Customer
+            </p>
+
+            <p className="font-semibold mt-1">
+              {order.customerName}
+            </p>
+          </div>
+
+          {/* EMAIL */}
+
+          <div
+            className="
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+          "
+          >
+            <p className="text-sm text-gray-500">
+              Email
+            </p>
+
+            <p className="font-semibold mt-1 break-all">
+              {order.email}
+            </p>
+          </div>
+
+          {/* PAYMENT */}
+
+          <div
+            className="
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+          "
+          >
+            <p className="text-sm text-gray-500">
+              Payment Method
+            </p>
+
+            <p className="font-semibold mt-1 capitalize">
+              {order.paymentMethod}
+            </p>
+          </div>
+
+          {/* STATUS */}
+
+          <div
+            className="
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+          "
+          >
+            <p className="text-sm text-gray-500">
+              Order Status
+            </p>
+
+            <p
+              className="
+              font-semibold
+              mt-1
+              capitalize
+              text-green-600
+            "
+            >
               {order.status}
-            </span>
-          </p>
-
-          {/* ✅ FIXED */}
-          <p>
-            <strong>Invoice Number:</strong> {orderAny?.invoice?.number}
-          </p>
-
-          {orderAny?.invoice && (
-            <Button className="bg-transparent border text-darkColor/80 mt-2 hover:text-darkColor hover:border-darkColor hover:bg-darkColor/10 hoverEffect ">
-              {orderAny?.invoice?.hosted_invoice_url && (
-                <Link
-                  href={orderAny?.invoice?.hosted_invoice_url}
-                  target="_blank"
-                >
-                  Download Invoice
-                </Link>
-              )}
-            </Button>
-          )}
+            </p>
+          </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Price</TableHead>
-            </TableRow>
-          </TableHeader>
+        {/* DATE */}
 
-          <TableBody>
-            {order.products?.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell className="flex items-center gap-2">
-                  {product?.product?.images && (
-                    <Image
-                      src={urlFor(product?.product?.images[0]).url()}
-                      alt="productImage"
-                      width={50}
-                      height={50}
-                      className="border rounded-sm"
-                    />
-                  )}
-                  {product?.product && product?.product?.name}
-                </TableCell>
+        <div className="mt-5">
+          <p className="text-sm text-gray-500">
+            Order Date
+          </p>
 
-                <TableCell>{product?.quantity}</TableCell>
+          <p className="font-medium mt-1">
+            {order.orderDate &&
+              new Date(
+                order.orderDate
+              ).toLocaleDateString()}
+          </p>
+        </div>
 
-                <TableCell>
-                  <PriceFormatter
-                    amount={product?.product?.price}
-                    className="text-black font-medium"
-                  />
-                </TableCell>
+        {/* PRODUCTS */}
+
+        <div className="mt-8">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  Product
+                </TableHead>
+
+                <TableHead>
+                  Quantity
+                </TableHead>
+
+                <TableHead>
+                  Price
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
 
-        <div className="mt-4 text-right flex items-center justify-end">
-          <div className="w-44 flex flex-col gap-1">
-            {order?.amountDiscount !== 0 && (
-              <div className="w-full flex items-center justify-between">
-                <strong>Discount: </strong>
-                <PriceFormatter
-                  amount={order?.amountDiscount}
-                  className="text-black font-bold"
-                />
-              </div>
-            )}
+            <TableBody>
+              {order.products?.map(
+                (
+                  product,
+                  index
+                ) => (
+                  <TableRow key={index}>
+                    <TableCell className="flex items-center gap-3">
+                      {product?.product
+                        ?.images?.[0] && (
+                        <Image
+                          src={urlFor(
+                            product
+                              ?.product
+                              ?.images[0]
+                          ).url()}
+                          alt="product"
+                          width={55}
+                          height={55}
+                          className="
+                            rounded-xl
+                            border
+                          "
+                        />
+                      )}
 
-            {order?.amountDiscount !== 0 && (
-              <div className="w-full flex items-center justify-between">
-                <strong>Subtotal: </strong>
+                      <span className="font-medium">
+                        {
+                          product
+                            ?.product
+                            ?.name
+                        }
+                      </span>
+                    </TableCell>
+
+                    <TableCell>
+                      {
+                        product?.quantity
+                      }
+                    </TableCell>
+
+                    <TableCell>
+                      <PriceFormatter
+                        amount={
+                          product
+                            ?.product
+                            ?.price ?? 0
+                        }
+                        className="
+                          text-black
+                          font-medium
+                        "
+                      />
+                    </TableCell>
+                  </TableRow>
+                )
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* TOTALS */}
+
+        <div
+          className="
+          mt-8
+          flex
+          justify-end
+        "
+        >
+          <div
+            className="
+            w-full
+            max-w-xs
+            bg-[#faf7f2]
+            rounded-2xl
+            p-5
+            border
+            space-y-3
+          "
+          >
+            {/* SUBTOTAL */}
+
+            <div className="flex justify-between">
+              <span>
+                Subtotal
+              </span>
+
+              <PriceFormatter
+                amount={
+                  order.subtotal ?? 0
+                }
+              />
+            </div>
+
+            {/* SHIPPING */}
+
+            <div className="flex justify-between">
+              <span>
+                Shipping
+              </span>
+
+              <PriceFormatter
+                amount={
+                  order.shippingAmount ??
+                  0
+                }
+              />
+            </div>
+
+            {/* DISCOUNT */}
+
+            {(order.amountDiscount ??
+              0) > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>
+                  Discount
+                </span>
+
                 <PriceFormatter
                   amount={
-                    (order?.totalPrice as number) +
-                    (order?.amountDiscount as number)
+                    order.amountDiscount ??
+                    0
                   }
-                  className="text-black font-bold"
                 />
               </div>
             )}
 
-            <div className="w-full flex items-center justify-between">
-              <strong>Total: </strong>
+            {/* TOTAL */}
+
+            <div
+              className="
+              border-t
+              pt-3
+              flex
+              justify-between
+              font-semibold
+              text-lg
+            "
+            >
+              <span>Total</span>
+
               <PriceFormatter
-                amount={order?.totalPrice}
-                className="text-black font-bold"
+                amount={
+                  order.totalPrice ?? 0
+                }
               />
             </div>
           </div>
