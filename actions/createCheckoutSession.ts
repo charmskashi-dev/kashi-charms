@@ -2,10 +2,6 @@
 
 import { backendClient } from "@/sanity/lib/backendClient";
 
-// ======================================
-// CREATE ORDER
-// ======================================
-
 export default async function createCheckoutSession(
   items: any[],
   metadata: any
@@ -57,12 +53,20 @@ export default async function createCheckoutSession(
       discountAmount;
 
     // =========================
-    // AUTO GENERATED ORDER NUMBER
+    // ORDER NUMBER
     // =========================
 
     const orderNumber = `KC-${Date.now()
       .toString()
       .slice(-8)}`;
+
+    // =========================
+    // ✅ INVOICE NUMBER
+    // =========================
+
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(
+      100000 + Math.random() * 900000
+    )}`;
 
     // =========================
     // PRODUCTS
@@ -89,11 +93,10 @@ export default async function createCheckoutSession(
     const orderDoc = {
       _type: "order",
 
-      // =========================
-      // ORDER INFO
-      // =========================
-
       orderNumber,
+
+      // ✅ SAVE INVOICE NUMBER
+      invoiceNumber,
 
       customerName:
         metadata.customerName,
@@ -105,22 +108,10 @@ export default async function createCheckoutSession(
         metadata.clerkUserId ||
         "",
 
-      // =========================
-      // ADDRESS
-      // =========================
-
       address:
         metadata.address || null,
 
-      // =========================
-      // PRODUCTS
-      // =========================
-
       products,
-
-      // =========================
-      // PRICING
-      // =========================
 
       subtotal,
 
@@ -136,19 +127,11 @@ export default async function createCheckoutSession(
 
       currency: "INR",
 
-      // =========================
-      // STATUS
-      // =========================
-
       status: "pending",
 
       paymentMethod:
         metadata.paymentMethod ||
         "unpaid",
-
-      // =========================
-      // DATE
-      // =========================
 
       orderDate:
         new Date().toISOString(),
@@ -171,6 +154,8 @@ export default async function createCheckoutSession(
 
       orderNumber,
 
+      invoiceNumber,
+
       subtotal,
 
       shippingAmount,
@@ -187,10 +172,6 @@ export default async function createCheckoutSession(
     };
   }
 }
-
-// ======================================
-// MARK ORDER AS PAID
-// ======================================
 
 export const markOrderAsPaid =
   async (

@@ -31,6 +31,18 @@ export const orderType = defineType({
         Rule.required(),
     }),
 
+    // ✅ NEW
+    defineField({
+      name: "invoiceNumber",
+
+      title: "Invoice Number",
+
+      type: "string",
+
+      validation: (Rule) =>
+        Rule.required(),
+    }),
+
     defineField({
       name: "clerkUserId",
 
@@ -364,10 +376,6 @@ export const orderType = defineType({
     }),
   ],
 
-  // =========================
-  // PREVIEW
-  // =========================
-
   preview: {
     select: {
       name: "customerName",
@@ -379,6 +387,9 @@ export const orderType = defineType({
       orderId:
         "orderNumber",
 
+      invoice:
+        "invoiceNumber",
+
       email: "email",
 
       status: "status",
@@ -389,20 +400,14 @@ export const orderType = defineType({
       amount,
       currency,
       orderId,
+      invoice,
       email,
       status,
     }) {
-      const shortId = `${orderId?.slice(
-        0,
-        5
-      )}...${orderId?.slice(-5)}`;
-
       return {
-        title: `${name} (${shortId})`,
+        title: `${name} (${orderId})`,
 
-        subtitle: `${
-          currency || "₹"
-        } ${amount} • ${status} • ${email}`,
+        subtitle: `${invoice} • ₹${amount} • ${status} • ${email}`,
 
         media: BasketIcon,
       };
