@@ -1,6 +1,7 @@
 "use server";
 
 import { backendClient } from "@/sanity/lib/backendClient";
+import crypto from "crypto";
 
 export default async function createCheckoutSession(
   items: any[],
@@ -11,16 +12,12 @@ export default async function createCheckoutSession(
     // PRODUCT SUBTOTAL
     // =========================
 
-    const subtotal = items.reduce(
-      (acc, item) => {
-        return (
-          acc +
-          (item.product.price || 0) *
-            item.quantity
-        );
-      },
-      0
-    );
+    const subtotal = items.reduce((acc, item) => {
+      return (
+        acc +
+        (item.product.price || 0) * item.quantity
+      );
+    }, 0);
 
     // =========================
     // SHIPPING
@@ -31,8 +28,7 @@ export default async function createCheckoutSession(
     const FREE_SHIPPING_THRESHOLD = 499;
 
     const shippingAmount =
-      subtotal >=
-      FREE_SHIPPING_THRESHOLD
+      subtotal >= FREE_SHIPPING_THRESHOLD
         ? 0
         : SHIPPING_CHARGE;
 
@@ -72,19 +68,17 @@ export default async function createCheckoutSession(
     // PRODUCTS
     // =========================
 
-    const products = items.map(
-      (item) => ({
-        _key: crypto.randomUUID(),
+    const products = items.map((item) => ({
+      _key: crypto.randomUUID(),
 
-        product: {
-          _type: "reference",
+      product: {
+        _type: "reference",
 
-          _ref: item.product._id,
-        },
+        _ref: item.product._id,
+      },
 
-        quantity: item.quantity,
-      })
-    );
+      quantity: item.quantity,
+    }));
 
     // =========================
     // ORDER DOCUMENT
@@ -104,8 +98,7 @@ export default async function createCheckoutSession(
         metadata.customerEmail,
 
       clerkUserId:
-        metadata.clerkUserId ||
-        "",
+        metadata.clerkUserId || "",
 
       address:
         metadata.address || null,
@@ -126,11 +119,13 @@ export default async function createCheckoutSession(
 
       currency: "INR",
 
-      status: "pending",
+      status:
+        metadata.paymentMethod === "COD"
+          ? "confirmed"
+          : "pending",
 
       paymentMethod:
-        metadata.paymentMethod ||
-        "unpaid",
+        metadata.paymentMethod || "COD",
 
       orderDate:
         new Date().toISOString(),
@@ -141,39 +136,44 @@ export default async function createCheckoutSession(
     // =========================
 
     const createdOrder =
-      await backendClient.create(
-        orderDoc
-      );
+      await backendClient.create(orderDoc);
 
     // =========================
     // SEND ORDER EMAIL
     // =========================
 
-    await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-order-email`,
-      {
-        method: "POST",
+    try {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-order-email`,
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-        body: JSON.stringify({
-          customerEmail:
-            metadata.customerEmail,
+          body: JSON.stringify({
+            customerEmail:
+              metadata.customerEmail,
 
-          customerName:
-            metadata.customerName,
+            customerName:
+              metadata.customerName,
 
-          orderNumber,
+            orderNumber,
 
-          invoiceNumber,
+            invoiceNumber,
 
-          totalAmount,
-        }),
-      }
-    );
+            totalAmount,
+          }),
+        }
+      );
+    } catch (emailError) {
+      console.error(
+        "EMAIL ERROR:",
+        emailError
+      );
+    }
 
     // =========================
     // RETURN RESPONSE
@@ -196,9 +196,15 @@ export default async function createCheckoutSession(
       discountAmount,
 
       totalPrice: totalAmount,
+
+      redirectUrl:
+        "/payment-success",
     };
   } catch (error) {
-    console.error(error);
+    console.error(
+      "CHECKOUT ERROR:",
+      error
+    );
 
     return {
       success: false,
@@ -218,8 +224,7 @@ export const markOrderAsPaid =
           status: "processing",
 
           paymentMethod:
-            paymentMethod ||
-            "online",
+            paymentMethod || "online",
         })
         .commit();
 
