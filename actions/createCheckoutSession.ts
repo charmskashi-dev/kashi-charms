@@ -61,7 +61,7 @@ export default async function createCheckoutSession(
       .slice(-8)}`;
 
     // =========================
-    // ✅ INVOICE NUMBER
+    // INVOICE NUMBER
     // =========================
 
     const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(
@@ -95,7 +95,6 @@ export default async function createCheckoutSession(
 
       orderNumber,
 
-      // ✅ SAVE INVOICE NUMBER
       invoiceNumber,
 
       customerName:
@@ -145,6 +144,40 @@ export default async function createCheckoutSession(
       await backendClient.create(
         orderDoc
       );
+
+    // =========================
+    // SEND ORDER EMAIL
+    // =========================
+
+    await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-order-email`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          customerEmail:
+            metadata.customerEmail,
+
+          customerName:
+            metadata.customerName,
+
+          orderNumber,
+
+          invoiceNumber,
+
+          totalAmount,
+        }),
+      }
+    );
+
+    // =========================
+    // RETURN RESPONSE
+    // =========================
 
     return {
       success: true,
