@@ -57,7 +57,7 @@ const CancellationPolicyPage = () => {
             </p>
 
             <p className="font-medium text-darkColor">
-              support@kashicharms.com
+              kashicharmsofficial@gmail.com
             </p>
           </section>
 
