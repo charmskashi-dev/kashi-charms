@@ -11,8 +11,9 @@ export const quickLinksData = [
   { title: "Track Orders", href: "/orders" },
   { title: "Shipping Policy", href: "/shipping-policy" },
   { title: "Return & Refund Policy", href: "/return-policy" },
+  { title: "Cancellation Policy", href: "/cancellation-policy" },
   { title: "Terms & Conditions", href: "/terms" },
-  { title: "Privacy Policy", href: "/privacy" },
+  { title: "Privacy Policy", href: "/privacy-policy" },
   { title: "FAQs", href: "/faqs" },
   { title: "Help", href: "/help" },
 ];

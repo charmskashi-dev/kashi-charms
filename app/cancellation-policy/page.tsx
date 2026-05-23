@@ -3,70 +3,64 @@ import Container from "@/components/Container";
 const CancellationPolicyPage = () => {
   return (
     <Container className="py-16 max-w-4xl">
-      <div className="space-y-8">
-        <div>
-          <p className="text-shop-light-green font-semibold uppercase tracking-widest">
-            Kashi Charms
-          </p>
+      <div className="space-y-10">
 
-          <h1 className="text-4xl font-bold mt-2 text-darkColor">
+        <div className="space-y-4 text-center">
+          <h1 className="text-4xl font-bold text-darkColor">
             Cancellation Policy
           </h1>
 
-          <p className="text-gray-500 mt-3">
-            Last updated: May 2026
+          <p className="text-lightColor text-lg leading-8">
+            At Kashi Charms, we begin preparing handmade orders shortly
+            after they are placed. Please review our cancellation
+            guidelines below.
           </p>
         </div>
 
-        <div className="space-y-6 text-lightColor leading-8">
-          <p>
-            Orders can only be cancelled before they are packed or shipped.
-          </p>
+        <div className="space-y-8">
 
-          <div>
-            <h2 className="text-2xl font-semibold text-darkColor mb-2">
-              Cancellation Window
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold text-darkColor">
+              Order Cancellation
             </h2>
 
-            <p>
-              Customers must request cancellation within 12 hours
-              of placing the order.
+            <p className="text-lightColor leading-8">
+              Orders may be cancelled within 12 hours of placement,
+              provided the crafting or shipping process has not begun.
             </p>
-          </div>
 
-          <div>
-            <h2 className="text-2xl font-semibold text-darkColor mb-2">
-              How To Cancel
-            </h2>
-
-            <p>
-              To cancel your order, contact us through email or Instagram
-              with your order number.
+            <p className="text-lightColor leading-8">
+              Once an order has been processed or shipped,
+              cancellations will no longer be possible.
             </p>
-          </div>
+          </section>
 
-          <div>
-            <h2 className="text-2xl font-semibold text-darkColor mb-2">
-              Refund For Cancelled Orders
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold text-darkColor">
+              Refund for Cancelled Orders
             </h2>
 
-            <p>
-              If the cancellation is approved, refunds will be processed
-              within 5-7 business days.
+            <p className="text-lightColor leading-8">
+              Approved cancellations will be refunded to the original
+              payment method within 5–7 business days.
             </p>
-          </div>
+          </section>
 
-          <div>
-            <h2 className="text-2xl font-semibold text-darkColor mb-2">
-              Non-Cancellable Orders
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold text-darkColor">
+              Need Help?
             </h2>
 
-            <ul className="list-disc pl-6 mt-2 space-y-2">
-              <li>Orders already shipped</li>
-              <li>Customized jewellery orders</li>
-              <li>Made-to-order products</li>
-            </ul>
-          </div>
+            <p className="text-lightColor leading-8">
+              To request a cancellation, contact our support team with
+              your order number as soon as possible.
+            </p>
+
+            <p className="font-medium text-darkColor">
+              support@kashicharms.com
+            </p>
+          </section>
+
         </div>
       </div>
     </Container>
