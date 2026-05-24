@@ -1,56 +1,110 @@
 import React from "react";
+
 import Title from "./Title";
+
 import { getLatestBlogs } from "@/sanity/queries";
+
 import Image from "next/image";
+
 import { urlFor } from "@/sanity/lib/image";
+
 import Link from "next/link";
+
 import { Calendar } from "lucide-react";
+
 import dayjs from "dayjs";
 
 const LatestBlog = async () => {
-  const blogs = await getLatestBlogs();
+  const blogs =
+    await getLatestBlogs();
+
   return (
     <div className="mb-10 lg:mb-20">
-      <Title>Latest Blog</Title>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-5">
-        {blogs?.map((blog) => (
-          <div key={blog?._id} className="rounded-lg overflow-hidden">
+      <Title>
+        Latest Blogs
+      </Title>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        {blogs?.map((blog: any) => (
+          <div
+            key={blog?._id}
+            className="rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition duration-500 group"
+          >
+            {/* IMAGE */}
+
             {blog?.mainImage && (
-              <Link href={`/blog/${blog?.slug?.current}`}>
+              <Link
+                href={`/blog/${blog?.slug?.current}`}
+                className="overflow-hidden block"
+              >
                 <Image
-                  src={urlFor(blog?.mainImage).url()}
-                  alt="blogImage"
+                  src={urlFor(
+                    blog?.mainImage
+                  ).url()}
+                  alt={
+                    blog?.title ||
+                    "blogImage"
+                  }
                   width={500}
                   height={500}
-                  className="w-full max-h-80 object-cover"
+                  className="w-full h-64 object-cover group-hover:scale-105 transition duration-700"
                 />
               </Link>
             )}
+
+            {/* CONTENT */}
+
             <div className="bg-shop-light-bg p-5">
-              <div className="text-xs flex items-center gap-5">
-                <div className="flex items-center relative group cursor-pointer">
-                  {blog?.blogcategories?.map((item, index) => (
-                    <p
-                      key={index}
-                      className="font-semibold text-shop-dark-green tracking-wider"
-                    >
-                      {item?.title}
-                    </p>
-                  ))}
-                  <span className="absolute left-0 -bottom-1.5 bg-lightColor/30 inline-block w-full h-0.5 group-hover:bg-shop-dark-green hover:cursor-pointer hoverEffect" />
+              {/* META */}
+
+              <div className="text-xs flex items-center gap-5 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {blog?.blogcategories?.map(
+  (
+    item: any,
+    index: number
+  ) => (
+                      <p
+                        key={
+                          index
+                        }
+                        className="font-semibold text-shop-dark-green tracking-wider"
+                      >
+                        {
+                          item?.title
+                        }
+                      </p>
+                    )
+                  )}
                 </div>
-                <p className="flex items-center gap-1 text-lightColor relative group hover:cursor-pointer hover:text-shop-dark-green hoverEffect">
-                  <Calendar size={15} />{" "}
-                  {dayjs(blog.publishedAt).format("MMMM D, YYYY")}
-                  <span className="absolute left-0 -bottom-1.5 bg-lightColor/30 inline-block w-full h-0.5 group-hover:bg-shop-dark-green hoverEffect" />
+
+                <p className="flex items-center gap-1 text-lightColor">
+                  <Calendar size={15} />
+
+                  {dayjs(
+                    blog.publishedAt
+                  ).format(
+                    "MMMM D, YYYY"
+                  )}
                 </p>
               </div>
+
+              {/* TITLE */}
+
               <Link
                 href={`/blog/${blog?.slug?.current}`}
-                className="text-base font-semibold tracking-wide mt-5 line-clamp-2 hover:text-shop-dark-green hoverEffect"
+                className="block text-base font-semibold tracking-wide mt-5 line-clamp-2 hover:text-shop-dark-green hoverEffect"
               >
                 {blog?.title}
               </Link>
+
+              {/* EXCERPT */}
+
+              <p className="text-sm text-gray-500 mt-3 line-clamp-2 leading-6">
+                {
+                  blog?.excerpt
+                }
+              </p>
             </div>
           </div>
         ))}

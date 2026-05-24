@@ -1,57 +1,112 @@
 import Container from "@/components/Container";
 import Title from "@/components/Title";
+
 import { urlFor } from "@/sanity/lib/image";
+
 import { getAllBlogs } from "@/sanity/queries";
+
 import dayjs from "dayjs";
+
 import { Calendar } from "lucide-react";
+
 import Image from "next/image";
+
 import Link from "next/link";
+
 import React from "react";
 
 const BlogPage = async () => {
-  const blogs = await getAllBlogs(6);
+  const blogs =
+    await getAllBlogs(6);
 
   return (
-    <div>
+    <div className="py-10">
       <Container>
-        <Title>Blog page</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 md:mt-10">
-          {blogs?.map((blog) => (
-            <div key={blog?._id} className="rounded-md overflow-hidden group">
+        <Title>
+          Latest Blogs
+        </Title>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+          {blogs?.map((blog: any) => (
+            <div
+              key={blog?._id}
+              className="rounded-2xl overflow-hidden group bg-white shadow-sm hover:shadow-xl transition duration-500"
+            >
+              {/* IMAGE */}
+
               {blog?.mainImage && (
-                <Image
-                  src={urlFor(blog?.mainImage).url()}
-                  alt="blogImage"
-                  width={500}
-                  height={500}
-                  className="w-full max-h-80 object-cover"
-                />
-              )}
-              <div className="bg-gray-100 p-5">
-                <div className="text-xs flex items-center gap-5">
-                  <div className="flex items-center relative group cursor-pointer">
-                    {blog?.blogcategories?.map((item, index) => (
-                      <p
-                        key={index}
-                        className="font-semibold text-shop-dark_-green tracking-wider"
-                      >
-                        {item?.title}
-                      </p>
-                    ))}
-                    <span className="absolute left-0 -bottom-1.5 bg-lightColor/30 inline-block w-full h-0.5 group-hover:bg-shop-dark-green hover:cursor-pointer hoverEffect" />
-                  </div>
-                  <p className="flex items-center gap-1 text-lightColor relative group hover:cursor-pointer hover:text-shop-dark-green hoverEffect">
-                    <Calendar size={15} />{" "}
-                    {dayjs(blog.publishedAt).format("MMMM D, YYYY")}
-                    <span className="absolute left-0 -bottom-1.5 bg-lightColor/30 inline-block w-full h-0.5 group-hover:bg-shop-dark-green hoverEffect" />
-                  </p>
-                </div>
                 <Link
                   href={`/blog/${blog?.slug?.current}`}
-                  className="text-base font-bold tracking-wide mt-5 line-clamp-2 hover:text-shop-dark-green hoverEffect"
+                  className="overflow-hidden block"
+                >
+                  <Image
+                    src={urlFor(
+                      blog?.mainImage
+                    ).url()}
+                    alt={
+                      blog?.title ||
+                      "blogImage"
+                    }
+                    width={500}
+                    height={500}
+                    className="w-full h-72 object-cover group-hover:scale-105 transition duration-700"
+                  />
+                </Link>
+              )}
+
+              {/* CONTENT */}
+
+              <div className="p-5">
+                {/* META */}
+
+                <div className="flex items-center gap-5 text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {blog?.blogcategories?.map(
+  (
+    item: any,
+    index: number
+  ) => (
+                        <p
+                          key={
+                            index
+                          }
+                          className="font-semibold text-shop-dark-green tracking-wider"
+                        >
+                          {
+                            item?.title
+                          }
+                        </p>
+                      )
+                    )}
+                  </div>
+
+                  <p className="flex items-center gap-1 text-lightColor">
+                    <Calendar size={15} />
+
+                    {dayjs(
+                      blog.publishedAt
+                    ).format(
+                      "MMMM D, YYYY"
+                    )}
+                  </p>
+                </div>
+
+                {/* TITLE */}
+
+                <Link
+                  href={`/blog/${blog?.slug?.current}`}
+                  className="block text-lg font-bold tracking-wide mt-5 line-clamp-2 hover:text-shop-dark-green hoverEffect"
                 >
                   {blog?.title}
                 </Link>
+
+                {/* EXCERPT */}
+
+                <p className="text-sm text-gray-500 mt-3 line-clamp-3 leading-6">
+                  {
+                    blog?.excerpt
+                  }
+                </p>
               </div>
             </div>
           ))}
