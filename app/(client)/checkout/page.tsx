@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import createCheckoutSession from "@/actions/createCheckoutSession";
@@ -30,13 +31,42 @@ export default function CheckoutPage() {
     (state) => state.resetCart
   );
 
-  const totalPrice = groupedItems.reduce(
+  // =========================
+  // SUBTOTAL
+  // =========================
+
+  const subtotal = groupedItems.reduce(
     (acc, item) =>
       acc +
       (item.product.price || 0) *
         item.quantity,
     0
   );
+
+  // =========================
+  // SHIPPING
+  // =========================
+
+  const SHIPPING_CHARGE = 60;
+
+  const FREE_SHIPPING_THRESHOLD = 499;
+
+  const shippingAmount =
+    subtotal >=
+    FREE_SHIPPING_THRESHOLD
+      ? 0
+      : SHIPPING_CHARGE;
+
+  // =========================
+  // FINAL TOTAL
+  // =========================
+
+  const totalPrice =
+    subtotal + shippingAmount;
+
+  // =========================
+  // PLACE ORDER
+  // =========================
 
   const placeOrder = async () => {
     if (!groupedItems.length) {
@@ -63,16 +93,13 @@ export default function CheckoutPage() {
       );
 
       // =========================
-      // CREATE ORDER
+      // CREATE ORDER IN SANITY
       // =========================
 
       const res =
         await createCheckoutSession(
           items,
           {
-            orderNumber:
-              "ORD-" + Date.now(),
-
             customerName:
               user.fullName || "Guest",
 
@@ -101,20 +128,22 @@ export default function CheckoutPage() {
 
       if (paymentMethod === "cod") {
         toast.success(
-          "Order placed successfully 🎉"
+          "Order placed successfully ✨"
         );
 
+        // CLEAR CART
         resetCart();
 
+        // REDIRECT TO YOUR BEAUTIFUL SUCCESS PAGE
         router.push(
-          `/payment-success?orderNumber=${res.orderNumber}`
+          `/success?orderNumber=${res.orderNumber}`
         );
 
         return;
       }
 
       // =========================
-      // PAYU FLOW
+      // ONLINE PAYMENT FLOW
       // =========================
 
       const payuRes = await fetch(
@@ -130,11 +159,13 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             amount: res.totalPrice,
 
-            name: user.fullName,
+            name:
+              user.fullName ||
+              "Guest",
 
             email:
               user.emailAddresses[0]
-                ?.emailAddress,
+                ?.emailAddress || "",
 
             phone:
               user.phoneNumbers[0]
@@ -146,6 +177,18 @@ export default function CheckoutPage() {
 
       const data =
         await payuRes.json();
+
+      // =========================
+      // ERROR CHECK
+      // =========================
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // =========================
+      // PAYU FORM
+      // =========================
 
       const form =
         document.createElement(
@@ -163,6 +206,8 @@ export default function CheckoutPage() {
             document.createElement(
               "input"
             );
+
+          input.type = "hidden";
 
           input.name = key;
 
@@ -189,11 +234,38 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-shop-light-bg">
-      <div className="bg-white p-6 rounded-2xl shadow-md w-full max-w-md space-y-6">
-        <h1 className="text-2xl font-semibold text-center">
+    <div
+      className="
+        min-h-screen
+        flex
+        items-center
+        justify-center
+        p-6
+        bg-shop-light-bg
+      "
+    >
+      <div
+        className="
+          bg-white
+          p-6
+          rounded-2xl
+          shadow-md
+          w-full
+          max-w-md
+          space-y-6
+        "
+      >
+        <h1
+          className="
+            text-2xl
+            font-semibold
+            text-center
+          "
+        >
           Checkout
         </h1>
+
+        {/* PAYMENT METHOD */}
 
         <div className="flex gap-3">
           <button
@@ -202,14 +274,14 @@ export default function CheckoutPage() {
                 "cod"
               )
             }
-            className={`flex-1 py-2 rounded-lg ${
+            className={`flex-1 py-2 rounded-lg transition-all ${
               paymentMethod ===
               "cod"
                 ? "bg-shop-dark-green text-white"
                 : "bg-gray-100"
             }`}
           >
-            COD
+            Cash on Delivery
           </button>
 
           <button
@@ -218,7 +290,7 @@ export default function CheckoutPage() {
                 "online"
               )
             }
-            className={`flex-1 py-2 rounded-lg ${
+            className={`flex-1 py-2 rounded-lg transition-all ${
               paymentMethod ===
               "online"
                 ? "bg-shop-dark-green text-white"
@@ -229,18 +301,58 @@ export default function CheckoutPage() {
           </button>
         </div>
 
-        <div className="text-center text-lg font-medium">
-          Total: ₹{totalPrice}
+        {/* PRICE DETAILS */}
+
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between">
+            <span>Subtotal</span>
+
+            <span>
+              ₹{subtotal}
+            </span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Shipping</span>
+
+            <span>
+              {shippingAmount === 0
+                ? "FREE"
+                : `₹${shippingAmount}`}
+            </span>
+          </div>
+
+          <div className="border-t pt-3 flex justify-between font-semibold text-base">
+            <span>Total</span>
+
+            <span>
+              ₹{totalPrice}
+            </span>
+          </div>
         </div>
+
+        {/* BUTTON */}
 
         <button
           onClick={placeOrder}
           disabled={loading}
-          className="w-full bg-black text-white py-3 rounded-lg"
+          className="
+            w-full
+            bg-black
+            text-white
+            py-3
+            rounded-xl
+            hover:opacity-90
+            transition-all
+            disabled:opacity-50
+          "
         >
           {loading
             ? "Processing..."
-            : "Place Order"}
+            : paymentMethod ===
+              "cod"
+            ? "Place COD Order"
+            : "Proceed to Payment"}
         </button>
       </div>
     </div>
