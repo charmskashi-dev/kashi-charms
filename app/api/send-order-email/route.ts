@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { Resend } from "resend";
 
 import OrderConfirmationEmail from "@/emails/OrderConfirmationEmail";
@@ -8,11 +7,18 @@ const resend = new Resend(
   process.env.RESEND_API_KEY
 );
 
-export async function POST(
-  req: Request
-) {
+export async function POST(req: Request) {
   try {
+    console.log(
+      "📨 SEND EMAIL API HIT"
+    );
+
     const body = await req.json();
+
+    console.log(
+      "📦 BODY:",
+      body
+    );
 
     const {
       customerEmail,
@@ -22,14 +28,10 @@ export async function POST(
       totalAmount,
     } = body;
 
-    // ✅ IMPORTANT
-    // convert amount to string
-
-    const formattedAmount = `₹${totalAmount}`;
-
     const data =
       await resend.emails.send({
-        from: "Kashi Charms <orders@kashicharms.com>",
+        from:
+          "Kashi Charms <orders@kashicharms.com>",
 
         to: customerEmail,
 
@@ -44,9 +46,14 @@ export async function POST(
             invoiceNumber,
 
             totalAmount:
-              formattedAmount,
+              `₹${totalAmount}`,
           }),
       });
+
+    console.log(
+      "✅ EMAIL RESPONSE:",
+      data
+    );
 
     return NextResponse.json({
       success: true,
@@ -55,7 +62,7 @@ export async function POST(
     });
   } catch (error) {
     console.error(
-      "EMAIL ERROR:",
+      "❌ EMAIL ERROR:",
       error
     );
 
@@ -66,7 +73,9 @@ export async function POST(
         error:
           "Failed to send email",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
