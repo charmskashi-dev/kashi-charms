@@ -30,6 +30,26 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 // =========================
+// TYPES
+// =========================
+
+type CategoryType = {
+  title: string | null;
+
+  count?: number | null;
+};
+
+type BlogType = {
+  title: string | null;
+
+  slug: {
+    current?: string;
+  } | null;
+
+  mainImage?: any;
+};
+
+// =========================
 // SEO METADATA
 // =========================
 
@@ -42,8 +62,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
 
-  const blog =
-    await getSingleBlog(slug);
+  const blog = await getSingleBlog(slug);
 
   if (!blog) {
     return {
@@ -55,8 +74,7 @@ export async function generateMetadata({
     title: `${blog.title} | Kashi Charms`,
 
     description:
-      blog?.excerpt ||
-      "Read the latest blog from Kashi Charms",
+      "Read the latest handcrafted jewellery stories and style guides from Kashi Charms.",
   };
 }
 
@@ -83,9 +101,7 @@ const SingleBlogPage = async ({
   return (
     <div className="py-10">
       <Container className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* ========================= */}
         {/* MAIN CONTENT */}
-        {/* ========================= */}
 
         <div className="lg:col-span-3">
           {blog?.mainImage && (
@@ -112,8 +128,8 @@ const SingleBlogPage = async ({
             <div className="flex items-center gap-2 flex-wrap">
               {blog?.blogcategories?.map(
                 (
-                  item,
-                  index
+                  item: any,
+                  index: number
                 ) => (
                   <p
                     key={index}
@@ -155,14 +171,6 @@ const SingleBlogPage = async ({
           <h1 className="text-3xl md:text-4xl font-bold text-darkColor leading-tight">
             {blog?.title}
           </h1>
-
-          {/* EXCERPT */}
-
-          {blog?.excerpt && (
-            <p className="mt-5 text-lg text-lightColor leading-8 border-l-4 border-shop-dark-green pl-5 italic">
-              {blog.excerpt}
-            </p>
-          )}
 
           {/* CONTENT */}
 
@@ -338,10 +346,10 @@ const BlogLeft = async ({
 
         <div className="space-y-3 mt-4">
           {categories?.map(
-  (
-    item: any,
-    index: number
-  ) => (
+            (
+              item: CategoryType,
+              index: number
+            ) => (
               <div
                 key={index}
                 className="flex justify-between text-sm text-lightColor"
@@ -352,7 +360,8 @@ const BlogLeft = async ({
 
                 <p className="font-semibold text-darkColor">
                   ({
-                    item?.count
+                    item?.count ||
+                    0
                   })
                 </p>
               </div>
@@ -371,7 +380,7 @@ const BlogLeft = async ({
         <div className="space-y-4 mt-5">
           {blogs?.map(
             (
-              blog: any,
+              blog: BlogType,
               index: number
             ) => (
               <Link
