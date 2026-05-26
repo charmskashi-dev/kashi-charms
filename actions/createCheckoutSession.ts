@@ -12,12 +12,16 @@ export default async function createCheckoutSession(
     // PRODUCT SUBTOTAL
     // =========================
 
-    const subtotal = items.reduce((acc, item) => {
-      return (
-        acc +
-        (item.product.price || 0) * item.quantity
-      );
-    }, 0);
+    const subtotal = items.reduce(
+      (acc, item) => {
+        return (
+          acc +
+          (item.product.price || 0) *
+            item.quantity
+        );
+      },
+      0
+    );
 
     // =========================
     // SHIPPING
@@ -28,16 +32,44 @@ export default async function createCheckoutSession(
     const FREE_SHIPPING_THRESHOLD = 499;
 
     const shippingAmount =
-      subtotal >= FREE_SHIPPING_THRESHOLD
+      subtotal >=
+      FREE_SHIPPING_THRESHOLD
         ? 0
         : SHIPPING_CHARGE;
 
     // =========================
-    // DISCOUNT
+    // FIRST ORDER CHECK
     // =========================
 
-    const discountAmount =
-      metadata.discountAmount || 0;
+    let discountAmount = 0;
+
+    let couponCode = "";
+
+    if (
+      metadata.couponCode ===
+        "FIRSTKASHI" &&
+      metadata.clerkUserId
+    ) {
+      const existingOrders =
+        await backendClient.fetch(
+          `count(*[_type == "order" && clerkUserId == $userId])`,
+          {
+            userId:
+              metadata.clerkUserId,
+          }
+        );
+
+      // ONLY FIRST ORDER
+      if (existingOrders === 0) {
+        discountAmount = Math.min(
+          subtotal * 0.5,
+          150
+        );
+
+        couponCode =
+          "FIRSTKASHI";
+      }
+    }
 
     // =========================
     // FINAL TOTAL
@@ -61,24 +93,30 @@ export default async function createCheckoutSession(
     // =========================
 
     const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(
-      100000 + Math.random() * 900000
+      100000 +
+        Math.random() * 900000
     )}`;
 
     // =========================
     // PRODUCTS
     // =========================
 
-    const products = items.map((item) => ({
-      _key: crypto.randomUUID(),
+    const products = items.map(
+      (item) => ({
+        _key:
+          crypto.randomUUID(),
 
-      product: {
-        _type: "reference",
+        product: {
+          _type: "reference",
 
-        _ref: item.product._id,
-      },
+          _ref:
+            item.product._id,
+        },
 
-      quantity: item.quantity,
-    }));
+        quantity:
+          item.quantity,
+      })
+    );
 
     // =========================
     // ORDER DOCUMENT
@@ -98,10 +136,12 @@ export default async function createCheckoutSession(
         metadata.customerEmail,
 
       clerkUserId:
-        metadata.clerkUserId || "",
+        metadata.clerkUserId ||
+        "",
 
       address:
-        metadata.address || null,
+        metadata.address ||
+        null,
 
       products,
 
@@ -112,20 +152,22 @@ export default async function createCheckoutSession(
       amountDiscount:
         discountAmount,
 
-      couponCode:
-        metadata.couponCode || "",
+      couponCode,
 
-      totalPrice: totalAmount,
+      totalPrice:
+        totalAmount,
 
       currency: "INR",
 
       status:
-        metadata.paymentMethod === "COD"
+        metadata.paymentMethod ===
+        "COD"
           ? "confirmed"
           : "pending",
 
       paymentMethod:
-        metadata.paymentMethod || "COD",
+        metadata.paymentMethod ||
+        "COD",
 
       orderDate:
         new Date().toISOString(),
@@ -136,10 +178,12 @@ export default async function createCheckoutSession(
     // =========================
 
     const createdOrder =
-      await backendClient.create(orderDoc);
+      await backendClient.create(
+        orderDoc
+      );
 
     // =========================
-    // SEND ORDER EMAIL
+    // SEND EMAIL
     // =========================
 
     try {
@@ -176,7 +220,7 @@ export default async function createCheckoutSession(
     }
 
     // =========================
-    // RETURN RESPONSE
+    // RETURN
     // =========================
 
     return {
@@ -195,7 +239,8 @@ export default async function createCheckoutSession(
 
       discountAmount,
 
-      totalPrice: totalAmount,
+      totalPrice:
+        totalAmount,
 
       redirectUrl:
         "/payment-success",
@@ -221,10 +266,12 @@ export const markOrderAsPaid =
       await backendClient
         .patch(orderId)
         .set({
-          status: "processing",
+          status:
+            "processing",
 
           paymentMethod:
-            paymentMethod || "online",
+            paymentMethod ||
+            "online",
         })
         .commit();
 
