@@ -61,10 +61,7 @@ export default async function createCheckoutSession(
 
       // ONLY FIRST ORDER
       if (existingOrders === 0) {
-        discountAmount = Math.min(
-          subtotal * 0.5,
-          150
-        );
+        discountAmount = subtotal * 0.5;
 
         couponCode =
           "FIRSTKASHI";
