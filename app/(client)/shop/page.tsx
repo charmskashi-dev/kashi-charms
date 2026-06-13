@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import { client } from "@/sanity/lib/client";
@@ -19,7 +19,8 @@ type ProductType = {
   discount?: number;
 };
 
-export default function ShopPage() {
+// ── Inner component that uses useSearchParams ────────────────────────────────
+function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -29,19 +30,15 @@ export default function ShopPage() {
 
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("latest");
-
-  // ── Search state seeded from URL param ──────────────────────────────────
   const [search, setSearch] = useState(
     searchParams.get("search") ?? ""
   );
 
-  // ── Sync search state if URL param changes ───────────────────────────────
   useEffect(() => {
     const param = searchParams.get("search") ?? "";
     setSearch(param);
   }, [searchParams]);
 
-  // ── Update URL when search changes so it's shareable/bookmarkable ────────
   const handleSearchChange = (val: string) => {
     setSearch(val);
     const params = new URLSearchParams(searchParams.toString());
@@ -53,7 +50,6 @@ export default function ShopPage() {
     router.replace(`/shop?${params.toString()}`, { scroll: false });
   };
 
-  // ── Fetch all products once ───────────────────────────────────────────────
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -81,7 +77,6 @@ export default function ShopPage() {
     fetchProducts();
   }, []);
 
-  // ── Filter + search + sort ────────────────────────────────────────────────
   useEffect(() => {
     let temp = [...products];
 
@@ -200,5 +195,28 @@ export default function ShopPage() {
 
       </Container>
     </div>
+  );
+}
+
+// ── Page export wrapped in Suspense ──────────────────────────────────────────
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-shop-light-bg min-h-screen pb-20">
+        <Container>
+          <div className="py-10 border-b border-black/5">
+            <div className="h-8 w-48 bg-gray-200 animate-pulse rounded-lg" />
+            <div className="h-4 w-64 bg-gray-100 animate-pulse rounded-lg mt-3" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-8">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-64 bg-white animate-pulse rounded-2xl" />
+            ))}
+          </div>
+        </Container>
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }
