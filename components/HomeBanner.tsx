@@ -195,12 +195,12 @@ export default function HomeBanner() {
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes slideProgress {
-          from { transform: scaleX(0); }
-          to   { transform: scaleX(1); }
-        }
-      `}</style>
+      <style>{`
+  @keyframes slideProgress {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+`}</style>
     </div>
   );
 }
@@ -215,7 +215,7 @@ function SlideContent({
 }) {
   if (slide.type === "video") {
     return (
-      <div className="relative py-16 md:py-0 bg-gray-900 rounded-lg px-10 lg:px-24 flex items-center justify-between min-h-[220px] overflow-hidden">
+      <div className="relative py-16 md:py-0 bg-gray-900 rounded-lg px-10 lg:px-24 flex items-center justify-between min-h-55 overflow-hidden">
         {/* Video background */}
         <video
           ref={videoRef}
@@ -226,7 +226,7 @@ function SlideContent({
           className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent" />
         {/* Content */}
         <div className="relative z-10 space-y-5">
           <Title className="text-white">{slide.heading}</Title>
