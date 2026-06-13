@@ -27,65 +27,82 @@ import {
   Truck,
   ShieldCheck,
   Tag,
+  MapPin,
+  AlertCircle,
+  X,
 } from "lucide-react";
 
 import Image from "next/image";
-
 import { useEffect, useState } from "react";
-
 import toast from "react-hot-toast";
-
 import createCheckoutSession from "@/actions/createCheckoutSession";
 
-type Address = NonNullable<Order["address"]> & {
-  _id: string;
-};
+type Address = NonNullable<Order["address"]> & { _id: string };
+
+// ── Address Missing Modal ────────────────────────────────────────────────────
+function AddressModal({ onClose, onAdd }: { onClose: () => void; onAdd: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+      <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-black transition"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="bg-amber-50 p-4 rounded-full">
+            <MapPin size={32} className="text-amber-500" />
+          </div>
+
+          <h3 className="text-xl font-semibold text-darkColor">
+            No Delivery Address
+          </h3>
+
+          <p className="text-gray-500 text-sm">
+            Please add a delivery address before placing your order. We need to know where to send your jewellery! ✨
+          </p>
+
+          <button
+            onClick={() => { onClose(); onAdd(); }}
+            className="w-full bg-black text-white py-3 rounded-2xl font-medium hover:opacity-90 transition"
+          >
+            + Add Address
+          </button>
+
+          <button
+            onClick={onClose}
+            className="text-sm text-gray-400 hover:text-gray-600 transition"
+          >
+            Go back to cart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CartPage = () => {
-  const {
-    deleteCartProduct,
-    getTotalPrice,
-    getItemCount,
-    resetCart,
-  } = useStore();
-
-  const groupedItems = useStore((state) =>
-    state.getGroupedItems()
-  );
-
+  const { deleteCartProduct, getTotalPrice, getItemCount, resetCart } = useStore();
+  const groupedItems = useStore((state) => state.getGroupedItems());
   const { user } = useUser();
 
-  const [addresses, setAddresses] = useState<
-    Address[]
-  >([]);
-
-  const [selectedAddress, setSelectedAddress] =
-    useState<Address | null>(null);
-
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const [paymentMethod, setPaymentMethod] =
-    useState<"cod" | "online">("cod");
-
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
   const [showForm, setShowForm] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
 
-  // =========================
-  // COUPON STATES
-  // =========================
+  // ── Coupon ───────────────────────────────────────────────────────────────
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponMessage, setCouponMessage] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
 
-  const [couponCode, setCouponCode] =
-    useState("");
-
-  const [discount, setDiscount] =
-    useState(0);
-
-  const [couponApplied, setCouponApplied] =
-    useState(false);
-
-  // =========================
-  // ADDRESS FORM
-  // =========================
-
+  // ── Address form ─────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -94,358 +111,191 @@ const CartPage = () => {
     zip: "",
   });
 
-  // =========================
-  // PRICING LOGIC
-  // =========================
-
+  // ── Pricing ──────────────────────────────────────────────────────────────
   const subtotal = getTotalPrice();
-
   const SHIPPING_CHARGE = 60;
-
   const FREE_SHIPPING_THRESHOLD = 499;
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const total = subtotal + shipping - discountAmount;
 
-  const shipping =
-    subtotal >= FREE_SHIPPING_THRESHOLD
-      ? 0
-      : SHIPPING_CHARGE;
-
-  // =========================
-  // DISCOUNT LOGIC
-  // =========================
-
-  const calculatedDiscount = couponApplied ? subtotal * 0.5 : 0;
-
-  const finalDiscount =
-    discount || calculatedDiscount;
-
-  // =========================
-  // TOTAL
-  // =========================
-
-  const total =
-    subtotal +
-    shipping -
-    finalDiscount;
-
-  // =========================
-  // APPLY COUPON
-  // =========================
-
-  // FIXED — checks first-order status via API, true 50% with no cap
-const handleApplyCoupon = async () => {
-  const normalized = couponCode.trim().toUpperCase();
-
-  if (normalized !== "FIRSTKASHI") {
-    setDiscount(0);
-    setCouponApplied(false);
-    toast.error("Invalid coupon code");
-    return;
-  }
-
-  if (!user) {
-    toast.error("Please sign in to use this coupon");
-    return;
-  }
-
-  try {
-    const res = await fetch("/api/check-first-order");
-    const data = await res.json();
-
-    if (!data.isFirstOrder) {
-      setDiscount(0);
-      setCouponApplied(false);
-      toast.error("FIRSTKASHI is only valid on your first order");
+  // ── Apply coupon ─────────────────────────────────────────────────────────
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("Please enter a coupon code");
       return;
     }
 
-    // True 50% — no ₹150 cap
-    const discountAmount = subtotal * 0.5;
-    setDiscount(discountAmount);
-    setCouponApplied(true);
-    toast.success("FIRSTKASHI applied ✨");
-  } catch {
-    toast.error("Could not verify coupon. Try again.");
-  }
-};
+    if (couponApplied) {
+      setDiscountAmount(0);
+      setCouponApplied(false);
+      setCouponMessage("");
+      setCouponCode("");
+      toast.success("Coupon removed");
+      return;
+    }
 
-  // =========================
-  // FETCH ADDRESSES
-  // =========================
+    setCouponLoading(true);
 
+    try {
+      const res = await fetch("/api/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponCode.trim().toUpperCase(),
+          cartTotal: subtotal,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.valid) {
+        toast.error(data.message);
+        setDiscountAmount(0);
+        setCouponApplied(false);
+        setCouponMessage("");
+        return;
+      }
+
+      setDiscountAmount(data.discountAmount);
+      setCouponApplied(true);
+      setCouponMessage(data.message);
+      toast.success(data.message);
+    } catch {
+      toast.error("Could not validate coupon. Try again.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  // ── Fetch addresses ──────────────────────────────────────────────────────
   const fetchAddresses = async () => {
     if (!user?.id) return;
-
     try {
       const data = await writeClient.fetch(
         `*[_type=="address" && clerkUserId==$id]`,
         { id: user.id }
       );
-
       setAddresses(data || []);
-
-      if (data?.length > 0) {
-        setSelectedAddress(data[0]);
-      }
+      if (data?.length > 0) setSelectedAddress(data[0]);
     } catch (err) {
       console.log(err);
     }
   };
 
   useEffect(() => {
-    if (user?.id) {
-      fetchAddresses();
-    }
+    if (user?.id) fetchAddresses();
   }, [user?.id]);
 
-  // =========================
-  // SAVE ADDRESS
-  // =========================
-
+  // ── Save address ─────────────────────────────────────────────────────────
   const handleSaveAddress = async () => {
-    if (!user) {
-      window.location.href = "/sign-in";
-      return;
-    }
+    if (!user) { window.location.href = "/sign-in"; return; }
 
-    if (
-      !form.name ||
-      !form.address ||
-      !form.city
-    ) {
-      toast.error(
-        "Fill all required fields"
-      );
-
+    if (!form.name || !form.address || !form.city) {
+      toast.error("Please fill all required fields");
       return;
     }
 
     try {
-      const res = await fetch(
-        "/api/create-address",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            clerkUserId: user.id,
-            ...form,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error();
-      }
-
-      toast.success("Address added ✅");
-
-      setShowForm(false);
-
-      setForm({
-        name: "",
-        address: "",
-        city: "",
-        state: "",
-        zip: "",
+      const res = await fetch("/api/create-address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clerkUserId: user.id, ...form }),
       });
 
-      await fetchAddresses();
+      const data = await res.json();
+      if (!data.success) throw new Error();
 
+      toast.success("Address added ✅");
+      setShowForm(false);
+      setForm({ name: "", address: "", city: "", state: "", zip: "" });
+      await fetchAddresses();
       setSelectedAddress(data.address);
     } catch {
-      toast.error(
-        "Failed to save address ❌"
-      );
+      toast.error("Failed to save address ❌");
     }
   };
 
-  // =========================
-  // RESET CART
-  // =========================
-
+  // ── Reset cart ───────────────────────────────────────────────────────────
   const handleResetCart = () => {
     if (window.confirm("Reset cart?")) {
       resetCart();
-
       toast.success("Cart reset!");
     }
   };
 
-  // =========================
-  // CHECKOUT
-  // =========================
-
+  // ── Checkout ─────────────────────────────────────────────────────────────
   const handleCheckout = async () => {
-    if (!groupedItems.length) {
-      toast.error("Cart empty");
-
-      return;
-    }
-
-    if (!user) {
-      window.location.href = "/sign-in";
-
-      return;
-    }
+    if (!groupedItems.length) { toast.error("Cart is empty"); return; }
+    if (!user) { window.location.href = "/sign-in"; return; }
 
     if (!selectedAddress) {
-      toast.error(
-        "Please select address"
-      );
-
+      setShowAddressModal(true);
       return;
     }
 
     setLoading(true);
 
     try {
-      const items = groupedItems.map(
-        (item) => ({
-          product: item.product,
-          quantity: item.quantity,
-        })
-      );
+      const items = groupedItems.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+      }));
 
-      const res =
-        await createCheckoutSession(
-          items,
-          {
-            orderNumber:
-              "ORD-" + Date.now(),
+      const res = await createCheckoutSession(items, {
+        orderNumber: "ORD-" + Date.now(),
+        customerName: user.fullName || "Guest",
+        customerEmail: user.emailAddresses[0]?.emailAddress || "",
+        clerkUserId: user.id,
+        address: selectedAddress,
+        shippingAmount: shipping,
+        totalAmount: total,
+        discountAmount,
+        couponCode: couponApplied ? couponCode.trim().toUpperCase() : null,
+        paymentMethod,
+      });
 
-            customerName:
-              user.fullName || "Guest",
-
-            customerEmail:
-              user.emailAddresses[0]
-                ?.emailAddress || "",
-
-            clerkUserId: user.id,
-
-            address: selectedAddress,
-
-            shippingAmount:
-              shipping,
-
-            totalAmount: total,
-
-            discountAmount:
-              finalDiscount,
-
-            couponCode:
-              couponApplied
-                ? couponCode
-                : null,
-
-            paymentMethod,
-          }
-        );
-
-      if (!res?.success) {
-        throw new Error();
-      }
-
-      // =========================
-      // COD
-      // =========================
+      if (!res?.success) throw new Error();
 
       if (paymentMethod === "cod") {
-        toast.success(
-          "Order placed successfully 🎉"
-        );
-
+        toast.success("Order placed successfully 🎉");
         resetCart();
-
-        window.location.href =
-          "/success";
-
+        window.location.href = "/success";
         return;
       }
 
-      // =========================
-      // PAYU
-      // =========================
-
-      const payuRes = await fetch(
-        "/api/payu/initiate",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            amount: total.toString(),
-
-            firstname:
-              user.fullName ||
-              "Customer",
-
-            email:
-              user.emailAddresses[0]
-                ?.emailAddress || "",
-
-            phone:
-              user.phoneNumbers?.[0]
-                ?.phoneNumber ||
-              "9999999999",
-
-            productinfo:
-              "Kashi Charms Order",
-          }),
-        }
-      );
+      // ── PayU ───────────────────────────────────────────────────────────
+      const payuRes = await fetch("/api/payu/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: total.toString(),
+          firstname: user.fullName || "Customer",
+          email: user.emailAddresses[0]?.emailAddress || "",
+          phone: user.phoneNumbers?.[0]?.phoneNumber || "9999999999",
+          productinfo: "Kashi Charms Order",
+        }),
+      });
 
       const data = await payuRes.json();
+      if (data.error) throw new Error(data.error);
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const paymentForm =
-        document.createElement("form");
-
+      const paymentForm = document.createElement("form");
       paymentForm.method = "POST";
+      paymentForm.action = "https://secure.payu.in/_payment";
 
-      paymentForm.action =
-        "https://secure.payu.in/_payment";
+      Object.entries(data).forEach(([key, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = String(value);
+        paymentForm.appendChild(input);
+      });
 
-      Object.entries(data).forEach(
-        ([key, value]) => {
-          const input =
-            document.createElement(
-              "input"
-            );
-
-          input.type = "hidden";
-
-          input.name = key;
-
-          input.value = String(value);
-
-          paymentForm.appendChild(input);
-        }
-      );
-
-      document.body.appendChild(
-        paymentForm
-      );
-
+      document.body.appendChild(paymentForm);
       paymentForm.submit();
     } catch (err) {
       console.error(err);
-
-      toast.error(
-        "Checkout failed ❌"
-      );
+      toast.error("Checkout failed ❌");
     } finally {
       setLoading(false);
     }
@@ -453,178 +303,100 @@ const handleApplyCoupon = async () => {
 
   return (
     <div className="bg-[#faf7f2] min-h-screen pb-20">
+
+      {/* Address missing modal */}
+      {showAddressModal && (
+        <AddressModal
+          onClose={() => setShowAddressModal(false)}
+          onAdd={() => {
+            setShowAddressModal(false);
+            setShowForm(true);
+            setTimeout(() => {
+              document
+                .getElementById("address-section")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+          }}
+        />
+      )}
+
       <Container>
         {groupedItems?.length ? (
           <>
             {/* HEADER */}
-
             <div className="py-8">
               <div className="flex items-center gap-3">
                 <div className="bg-black text-white p-3 rounded-2xl">
                   <ShoppingBag size={20} />
                 </div>
-
                 <div>
-                  <Title>
-                    Shopping Cart
-                  </Title>
-
+                  <Title>Shopping Cart</Title>
                   <p className="text-sm text-gray-500 mt-1">
-                    Curated handmade
-                    jewellery crafted
-                    with elegance ✨
+                    Curated handmade jewellery crafted with elegance ✨
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-              {/* LEFT SIDE */}
-
+              {/* LEFT — cart items */}
               <div className="lg:col-span-2 bg-white rounded-3xl shadow-lg p-6">
                 <div className="space-y-4">
-                  {groupedItems.map(
-                    ({ product }) => {
-                      const count =
-                        getItemCount(
-                          product._id
-                        );
-
-                      return (
-                        <div
-                          key={product._id}
-                          className="
-                          flex
-                          justify-between
-                          gap-4
-                          border-b
-                          border-gray-100
-                          py-5
-                          hover:bg-gray-50
-                          transition-all
-                          duration-300
-                          rounded-2xl
-                          px-2
-                        "
-                        >
-                          {/* LEFT */}
-
-                          <div className="flex gap-4">
-                            {product
-                              ?.images?.[0] && (
-                              <Image
-                                src={urlFor(
-                                  product.images[0]
-                                ).url()}
-                                alt="product"
-                                width={110}
-                                height={110}
-                                className="
-                                rounded-2xl
-                                object-cover
-                                border
-                                border-gray-100
-                              "
-                              />
-                            )}
-
-                            <div className="flex flex-col justify-between">
-                              <div>
-                                <p className="font-semibold text-lg">
-                                  {
-                                    product.name
-                                  }
-                                </p>
-
-                                <p className="text-sm text-gray-500 mt-1">
-                                  Premium handmade
-                                  jewellery
-                                </p>
-                              </div>
-
-                              <button
-                                onClick={() =>
-                                  deleteCartProduct(
-                                    product._id
-                                  )
-                                }
-                                className="
-                                flex
-                                items-center
-                                gap-2
-                                text-red-500
-                                text-sm
-                                hover:text-red-600
-                                transition
-                              "
-                              >
-                                <Trash size={15} />
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* RIGHT */}
-
-                          <div className="flex flex-col items-end justify-between">
-                            <p className="text-lg font-bold">
-                              <PriceFormatter
-                                amount={
-                                  (product.price ||
-                                    0) *
-                                  count
-                                }
-                              />
-                            </p>
-
-                            <QuantityButton
-                              product={
-                                product
-                              }
+                  {groupedItems.map(({ product }) => {
+                    const count = getItemCount(product._id);
+                    return (
+                      <div
+                        key={product._id}
+                        className="flex justify-between gap-4 border-b border-gray-100 py-5 hover:bg-gray-50 transition-all duration-300 rounded-2xl px-2"
+                      >
+                        <div className="flex gap-4">
+                          {product?.images?.[0] && (
+                            <Image
+                              src={urlFor(product.images[0]).url()}
+                              alt="product"
+                              width={110}
+                              height={110}
+                              className="rounded-2xl object-cover border border-gray-100"
                             />
+                          )}
+                          <div className="flex flex-col justify-between">
+                            <div>
+                              <p className="font-semibold text-lg">{product.name}</p>
+                              <p className="text-sm text-gray-500 mt-1">
+                                Premium handmade jewellery
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => deleteCartProduct(product._id)}
+                              className="flex items-center gap-2 text-red-500 text-sm hover:text-red-600 transition"
+                            >
+                              <Trash size={15} /> Remove
+                            </button>
                           </div>
                         </div>
-                      );
-                    }
-                  )}
+
+                        <div className="flex flex-col items-end justify-between">
+                          <p className="text-lg font-bold">
+                            <PriceFormatter amount={(product.price || 0) * count} />
+                          </p>
+                          <QuantityButton product={product} />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* RESET */}
-
                 <button
-                  onClick={
-                    handleResetCart
-                  }
-                  className="
-                  mt-8
-                  border
-                  border-red-200
-                  text-red-500
-                  px-5
-                  py-3
-                  rounded-2xl
-                  hover:bg-red-50
-                  transition-all
-                "
+                  onClick={handleResetCart}
+                  className="mt-8 border border-red-200 text-red-500 px-5 py-3 rounded-2xl hover:bg-red-50 transition-all"
                 >
                   Reset Cart
                 </button>
               </div>
 
-              {/* RIGHT SIDE */}
-
+              {/* RIGHT — summary + address */}
               <div className="space-y-5">
-                {/* ORDER SUMMARY */}
-
-                <Card
-                  className="
-                  border-0
-                  shadow-2xl
-                  rounded-3xl
-                  bg-white/90
-                  backdrop-blur
-                "
-                >
+                <Card className="border-0 shadow-2xl rounded-3xl bg-white/90 backdrop-blur">
                   <CardHeader>
                     <CardTitle className="text-2xl font-semibold tracking-tight">
                       Order Summary
@@ -633,277 +405,137 @@ const handleApplyCoupon = async () => {
 
                   <CardContent>
                     <div className="space-y-5">
-                      {/* SUBTOTAL */}
-
+                      {/* Subtotal */}
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">
-                          Subtotal
-                        </span>
-
+                        <span className="text-gray-500">Subtotal</span>
                         <span className="font-medium">
-                          <PriceFormatter
-                            amount={
-                              subtotal
-                            }
-                          />
+                          <PriceFormatter amount={subtotal} />
                         </span>
                       </div>
 
-                      {/* SHIPPING */}
-
+                      {/* Shipping */}
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500 flex items-center gap-2">
-                          <Truck size={16} />
-                          Shipping
+                          <Truck size={16} /> Shipping
                         </span>
-
                         <span className="font-medium">
-                          {shipping ===
-                          0 ? (
-                            <span className="text-green-600 font-semibold">
-                              FREE
-                            </span>
+                          {shipping === 0 ? (
+                            <span className="text-green-600 font-semibold">FREE</span>
                           ) : (
-                            <PriceFormatter
-                              amount={
-                                shipping
-                              }
-                            />
+                            <PriceFormatter amount={shipping} />
                           )}
                         </span>
                       </div>
 
-                      {/* FREE SHIPPING MESSAGE */}
-
+                      {/* Shipping messages */}
                       {shipping > 0 && (
                         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
                           <p className="text-sm text-amber-700">
                             Add{" "}
                             <span className="font-semibold">
-                              ₹
-                              {FREE_SHIPPING_THRESHOLD -
-                                subtotal}
+                              ₹{FREE_SHIPPING_THRESHOLD - subtotal}
                             </span>{" "}
-                            more to unlock
-                            FREE delivery ✨
+                            more to unlock FREE delivery ✨
                           </p>
                         </div>
                       )}
-
-                      {shipping ===
-                        0 && (
+                      {shipping === 0 && (
                         <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
                           <p className="text-sm text-green-700 font-medium">
-                            🎉 You unlocked
-                            FREE shipping
+                            🎉 You unlocked FREE shipping
                           </p>
                         </div>
                       )}
 
-                      {/* COUPON SECTION */}
-
+                      {/* Coupon */}
                       <div className="space-y-3 border-t pt-5">
                         <div className="flex items-center gap-2">
                           <Tag size={16} />
-
-                          <p className="text-sm font-medium">
-                            Apply Coupon
-                          </p>
+                          <p className="text-sm font-medium">Apply Coupon</p>
                         </div>
 
                         <div className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="FIRSTKASHI"
-                            value={
-                              couponCode
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              setCouponCode(
-                                e.target
-                                  .value
-                              )
-                            }
-                            className="
-                            flex-1
-                            border
-                            border-gray-200
-                            rounded-2xl
-                            px-4
-                            py-3
-                            outline-none
-                            focus:border-black
-                            text-sm
-                          "
+                            placeholder="Enter coupon code"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            disabled={couponApplied}
+                            className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black text-sm disabled:bg-gray-50 disabled:text-gray-400"
                           />
-
                           <button
-                            onClick={
-                              handleApplyCoupon
-                            }
-                            className="
-                            bg-black
-                            text-white
-                            px-5
-                            rounded-2xl
-                            hover:opacity-90
-                            transition
-                            text-sm
-                            font-medium
-                          "
+                            onClick={handleApplyCoupon}
+                            disabled={couponLoading}
+                            className="bg-black text-white px-5 rounded-2xl hover:opacity-90 transition text-sm font-medium disabled:opacity-50"
                           >
-                            Apply
+                            {couponLoading ? "..." : couponApplied ? "Remove" : "Apply"}
                           </button>
                         </div>
 
                         {couponApplied && (
                           <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
                             <p className="text-sm text-green-700 font-medium">
-                              ✨ FIRSTKASHI
-                              applied —
-                              You saved{" "}
-                              <PriceFormatter
-                                amount={
-                                  finalDiscount
-                                }
-                              />
+                              ✨ {couponMessage}
                             </p>
                           </div>
                         )}
                       </div>
 
-                      {/* DISCOUNT */}
-
-                      {finalDiscount >
-                        0 && (
+                      {/* Discount */}
+                      {discountAmount > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">
-                            Discount
-                          </span>
-
+                          <span className="text-gray-500">Discount</span>
                           <span className="text-green-600 font-semibold">
-                            -₹
-                            {finalDiscount.toFixed(
-                              2
-                            )}
+                            − <PriceFormatter amount={discountAmount} />
                           </span>
                         </div>
                       )}
 
-                      {/* TOTAL */}
-
+                      {/* Total */}
                       <div className="border-t pt-5 flex justify-between items-center">
-                        <span className="text-lg font-semibold">
-                          Total
-                        </span>
-
+                        <span className="text-lg font-semibold">Total</span>
                         <span className="text-2xl font-bold">
-                          <PriceFormatter
-                            amount={
-                              total
-                            }
-                          />
+                          <PriceFormatter amount={total} />
                         </span>
                       </div>
 
-                      {/* PAYMENT */}
-
+                      {/* Payment method */}
                       <div className="grid grid-cols-2 gap-3 pt-2">
-                        <button
-                          onClick={() =>
-                            setPaymentMethod(
-                              "cod"
-                            )
-                          }
-                          className={`
-                          py-3
-                          rounded-2xl
-                          font-medium
-                          transition-all
-                          ${
-                            paymentMethod ===
-                            "cod"
-                              ? "bg-black text-white shadow-lg"
-                              : "bg-gray-100 hover:bg-gray-200"
-                          }
-                        `}
-                        >
-                          COD
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            setPaymentMethod(
-                              "online"
-                            )
-                          }
-                          className={`
-                          py-3
-                          rounded-2xl
-                          font-medium
-                          transition-all
-                          ${
-                            paymentMethod ===
-                            "online"
-                              ? "bg-black text-white shadow-lg"
-                              : "bg-gray-100 hover:bg-gray-200"
-                          }
-                        `}
-                        >
-                          Pay Online
-                        </button>
+                        {(["cod", "online"] as const).map((method) => (
+                          <button
+                            key={method}
+                            onClick={() => setPaymentMethod(method)}
+                            className={`py-3 rounded-2xl font-medium transition-all ${
+                              paymentMethod === method
+                                ? "bg-black text-white shadow-lg"
+                                : "bg-gray-100 hover:bg-gray-200"
+                            }`}
+                          >
+                            {method === "cod" ? "COD" : "Pay Online"}
+                          </button>
+                        ))}
                       </div>
 
-                      {/* CHECKOUT */}
-
+                      {/* Checkout button */}
                       <button
-                        onClick={
-                          handleCheckout
-                        }
-                        disabled={
-                          loading
-                        }
-                        className="
-                        w-full
-                        mt-2
-                        bg-black
-                        text-white
-                        p-4
-                        rounded-2xl
-                        font-medium
-                        tracking-wide
-                        hover:opacity-90
-                        transition-all
-                        duration-300
-                        shadow-lg
-                      "
+                        onClick={handleCheckout}
+                        disabled={loading}
+                        className="w-full mt-2 bg-black text-white p-4 rounded-2xl font-medium tracking-wide hover:opacity-90 transition-all duration-300 shadow-lg disabled:opacity-60"
                       >
                         {loading
                           ? "Processing..."
-                          : paymentMethod ===
-                            "cod"
+                          : paymentMethod === "cod"
                           ? "Place Order (COD)"
                           : "Pay Now"}
                       </button>
 
-                      {/* TRUST BADGES */}
-
+                      {/* Trust badges */}
                       <div className="pt-4 border-t text-sm text-gray-500 space-y-3">
                         <div className="flex items-center gap-2">
-                          <ShieldCheck
-                            size={16}
-                          />
-                          Secure payments
+                          <ShieldCheck size={16} /> Secure payments
                         </div>
-
                         <div className="flex items-center gap-2">
-                          <Truck
-                            size={16}
-                          />
-                          Fast & reliable
-                          delivery
+                          <Truck size={16} /> Fast & reliable delivery
                         </div>
                       </div>
                     </div>
@@ -911,167 +543,75 @@ const handleApplyCoupon = async () => {
                 </Card>
 
                 {/* ADDRESS SECTION */}
-
                 {user && (
-                  <Card className="rounded-3xl border-0 shadow-xl">
+                  <Card
+                    id="address-section"
+                    className="rounded-3xl border-0 shadow-xl"
+                  >
                     <CardHeader>
-                      <CardTitle className="text-xl">
-                        Delivery
-                        Address
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <MapPin size={20} /> Delivery Address
                       </CardTitle>
                     </CardHeader>
 
                     <CardContent>
-                      {addresses.length >
-                      0 ? (
+                      {addresses.length > 0 ? (
                         <div className="space-y-3">
-                          {addresses.map(
-                            (addr) => (
-                              <div
-                                key={
-                                  addr._id
-                                }
-                                onClick={() =>
-                                  setSelectedAddress(
-                                    addr
-                                  )
-                                }
-                                className={`
-                                p-4
-                                cursor-pointer
-                                rounded-2xl
-                                border
-                                transition-all
-                                ${
-                                  selectedAddress?._id ===
-                                  addr._id
-                                    ? "bg-black text-white border-black"
-                                    : "bg-gray-50 border-gray-100 hover:border-gray-300"
-                                }
-                              `}
-                              >
-                                <p className="font-medium">
-                                  {
-                                    addr.name
-                                  }
-                                </p>
-
-                                <p className="text-sm mt-1 opacity-80">
-                                  {
-                                    addr.address
-                                  }
-                                  ,{" "}
-                                  {
-                                    addr.city
-                                  }
-                                </p>
-                              </div>
-                            )
-                          )}
+                          {addresses.map((addr) => (
+                            <div
+                              key={addr._id}
+                              onClick={() => setSelectedAddress(addr)}
+                              className={`p-4 cursor-pointer rounded-2xl border transition-all ${
+                                selectedAddress?._id === addr._id
+                                  ? "bg-black text-white border-black"
+                                  : "bg-gray-50 border-gray-100 hover:border-gray-300"
+                              }`}
+                            >
+                              <p className="font-medium">{addr.name}</p>
+                              <p className="text-sm mt-1 opacity-80">
+                                {addr.address}, {addr.city}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500">
-                          No address
-                          found
-                        </p>
+                        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                          <AlertCircle size={18} className="text-amber-500 shrink-0" />
+                          <p className="text-sm text-amber-700">
+                            No address found. Add one before placing your order.
+                          </p>
+                        </div>
                       )}
 
-                      {/* ADD ADDRESS */}
-
                       <button
-                        onClick={() =>
-                          setShowForm(
-                            !showForm
-                          )
-                        }
-                        className="
-                        mt-5
-                        bg-black
-                        text-white
-                        px-4
-                        py-3
-                        rounded-2xl
-                        w-full
-                        hover:opacity-90
-                        transition
-                      "
+                        onClick={() => setShowForm(!showForm)}
+                        className="mt-5 bg-black text-white px-4 py-3 rounded-2xl w-full hover:opacity-90 transition"
                       >
-                        + Add Address
+                        + Add New Address
                       </button>
-
-                      {/* FORM */}
 
                       {showForm && (
                         <div className="mt-5 space-y-3">
-                          <input
-                            placeholder="Full Name"
-                            className="w-full border border-gray-200 p-3 rounded-2xl outline-none focus:border-black"
-                            value={
-                              form.name
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              setForm({
-                                ...form,
-                                name: e
-                                  .target
-                                  .value,
-                              })
-                            }
-                          />
-
-                          <input
-                            placeholder="Address"
-                            className="w-full border border-gray-200 p-3 rounded-2xl outline-none focus:border-black"
-                            value={
-                              form.address
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              setForm({
-                                ...form,
-                                address:
-                                  e
-                                    .target
-                                    .value,
-                              })
-                            }
-                          />
-
-                          <input
-                            placeholder="City"
-                            className="w-full border border-gray-200 p-3 rounded-2xl outline-none focus:border-black"
-                            value={
-                              form.city
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              setForm({
-                                ...form,
-                                city: e
-                                  .target
-                                  .value,
-                              })
-                            }
-                          />
-
+                          {[
+                            { key: "name", placeholder: "Full Name" },
+                            { key: "address", placeholder: "Address" },
+                            { key: "city", placeholder: "City" },
+                            { key: "state", placeholder: "State" },
+                            { key: "zip", placeholder: "PIN Code" },
+                          ].map(({ key, placeholder }) => (
+                            <input
+                              key={key}
+                              placeholder={placeholder}
+                              className="w-full border border-gray-200 p-3 rounded-2xl outline-none focus:border-black text-sm"
+                              value={form[key as keyof typeof form]}
+                              onChange={(e) =>
+                                setForm({ ...form, [key]: e.target.value })
+                              }
+                            />
+                          ))}
                           <button
-                            onClick={
-                              handleSaveAddress
-                            }
-                            className="
-                            bg-black
-                            text-white
-                            px-4
-                            py-3
-                            rounded-2xl
-                            w-full
-                            hover:opacity-90
-                            transition
-                          "
+                            onClick={handleSaveAddress}
+                            className="bg-black text-white px-4 py-3 rounded-2xl w-full hover:opacity-90 transition"
                           >
                             Save Address
                           </button>

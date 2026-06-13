@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import { client } from "@/sanity/lib/client";
 import ProductCard from "@/components/ProductCard";
 import SearchBar from "@/components/SearchBar";
 
-// ✅ MATCH ProductCard TYPE
 type ProductType = {
   _id: string;
   name?: string;
@@ -20,15 +20,40 @@ type ProductType = {
 };
 
 export default function ShopPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [products, setProducts] = useState<ProductType[]>([]);
   const [filtered, setFiltered] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("latest");
-  const [search, setSearch] = useState("");
 
-  // 🔥 FETCH PRODUCTS (FIXED)
+  // ── Search state seeded from URL param ──────────────────────────────────
+  const [search, setSearch] = useState(
+    searchParams.get("search") ?? ""
+  );
+
+  // ── Sync search state if URL param changes ───────────────────────────────
+  useEffect(() => {
+    const param = searchParams.get("search") ?? "";
+    setSearch(param);
+  }, [searchParams]);
+
+  // ── Update URL when search changes so it's shareable/bookmarkable ────────
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    const params = new URLSearchParams(searchParams.toString());
+    if (val.trim()) {
+      params.set("search", val.trim());
+    } else {
+      params.delete("search");
+    }
+    router.replace(`/shop?${params.toString()}`, { scroll: false });
+  };
+
+  // ── Fetch all products once ───────────────────────────────────────────────
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -45,7 +70,6 @@ export default function ShopPage() {
             "categories": categories[]->title
           }
         `);
-
         setProducts(data || []);
         setFiltered(data || []);
       } catch (err) {
@@ -54,22 +78,19 @@ export default function ShopPage() {
         setLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // 🔥 FILTER + SEARCH + SORT
+  // ── Filter + search + sort ────────────────────────────────────────────────
   useEffect(() => {
     let temp = [...products];
 
-    // 🔍 SEARCH
-    if (search.trim() !== "") {
+    if (search.trim()) {
       temp = temp.filter((p) =>
         (p.name || "").toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // 🏷 CATEGORY
     if (category !== "all") {
       temp = temp.filter((p) =>
         p.categories?.some(
@@ -78,7 +99,6 @@ export default function ShopPage() {
       );
     }
 
-    // 💰 SORT
     if (sort === "low") {
       temp.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sort === "high") {
@@ -88,19 +108,13 @@ export default function ShopPage() {
     setFiltered(temp);
   }, [search, category, sort, products]);
 
-  const categories = [
-    "all",
-    "rings",
-    "earrings",
-    "bracelets",
-    "necklaces",
-  ];
+  const categories = ["all", "rings", "earrings", "bracelets", "necklaces"];
 
   return (
     <div className="bg-shop-light-bg min-h-screen pb-20">
       <Container>
 
-        {/* 🔥 HERO */}
+        {/* Hero */}
         <div className="py-10 border-b border-black/5">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-darkColor">
             Shop Collection
@@ -110,9 +124,9 @@ export default function ShopPage() {
           </p>
         </div>
 
-        {/* 🔥 SEARCH + SORT */}
+        {/* Search + Sort */}
         <div className="flex flex-col md:flex-row gap-4 mt-6 md:items-center md:justify-between">
-          <SearchBar value={search} onChange={setSearch} />
+          <SearchBar value={search} onChange={handleSearchChange} />
 
           <select
             value={sort}
@@ -125,13 +139,13 @@ export default function ShopPage() {
           </select>
         </div>
 
-        {/* 🔥 CATEGORY */}
+        {/* Category pills */}
         <div className="flex gap-2 overflow-x-auto mt-4 no-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm capitalize transition-all hoverEffect ${
+              className={`px-4 py-1.5 rounded-full text-sm capitalize transition-all hoverEffect whitespace-nowrap ${
                 category === cat
                   ? "bg-shop-dark-green text-white shadow"
                   : "bg-white border border-black/10 text-gray-700 hover:bg-gray-100"
@@ -142,21 +156,34 @@ export default function ShopPage() {
           ))}
         </div>
 
-        {/* 🔥 GRID */}
-        <div className="mt-8">
+        {/* Results count */}
+        {!loading && (
+          <p className="text-sm text-gray-400 mt-5">
+            {filtered.length} product{filtered.length !== 1 ? "s" : ""} found
+            {search.trim() ? ` for "${search}"` : ""}
+          </p>
+        )}
+
+        {/* Grid */}
+        <div className="mt-4">
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-64 bg-white animate-pulse rounded-2xl"
-                />
+                <div key={i} className="h-64 bg-white animate-pulse rounded-2xl" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-gray-500 mt-20">
-              No products found 😔
-            </p>
+            <div className="flex flex-col items-center justify-center mt-20 gap-4">
+              <p className="text-gray-500 text-lg">
+                No products found for &quot;{search}&quot; 😔
+              </p>
+              <button
+                onClick={() => handleSearchChange("")}
+                className="text-sm text-shop-dark-green underline"
+              >
+                Clear search
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filtered.map((product) => (
