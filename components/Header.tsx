@@ -16,7 +16,7 @@ const Header = () => {
   const [search, setSearch] = useState("");
 
   return (
-    <header className="bg-white py-5 sticky top-9 z-40 shadow-sm">
+    <header className="bg-white py-5 sticky top-0 z-40 shadow-sm">
       <Container className="flex items-center justify-between text-lightColor">
 
         <div className="w-auto md:w-1/3 flex items-center gap-2.5">
