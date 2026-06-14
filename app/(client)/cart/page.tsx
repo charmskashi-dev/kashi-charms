@@ -5,6 +5,7 @@ import EmptyCart from "@/components/EmptyCart";
 import PriceFormatter from "@/components/PriceFormatter";
 import QuantityButton from "@/components/QuantityButton";
 import Title from "@/components/Title";
+import CouponDrawer from "@/components/CouponDrawer";
 
 import {
   Card,
@@ -18,7 +19,6 @@ import { writeClient } from "@/sanity/lib/writeClient";
 import { urlFor } from "@/sanity/lib/image";
 
 import useStore from "@/store";
-
 import { useUser } from "@clerk/nextjs";
 
 import {
@@ -26,7 +26,6 @@ import {
   Trash,
   Truck,
   ShieldCheck,
-  Tag,
   MapPin,
   AlertCircle,
   X,
@@ -40,7 +39,13 @@ import createCheckoutSession from "@/actions/createCheckoutSession";
 type Address = NonNullable<Order["address"]> & { _id: string };
 
 // ── Address Missing Modal ────────────────────────────────────────────────────
-function AddressModal({ onClose, onAdd }: { onClose: () => void; onAdd: () => void }) {
+function AddressModal({
+  onClose,
+  onAdd,
+}: {
+  onClose: () => void;
+  onAdd: () => void;
+}) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
@@ -61,11 +66,15 @@ function AddressModal({ onClose, onAdd }: { onClose: () => void; onAdd: () => vo
           </h3>
 
           <p className="text-gray-500 text-sm">
-            Please add a delivery address before placing your order. We need to know where to send your jewellery! ✨
+            Please add a delivery address before placing your order. We need
+            to know where to send your jewellery! ✨
           </p>
 
           <button
-            onClick={() => { onClose(); onAdd(); }}
+            onClick={() => {
+              onClose();
+              onAdd();
+            }}
             className="w-full bg-black text-white py-3 rounded-2xl font-medium hover:opacity-90 transition"
           >
             + Add Address
@@ -84,7 +93,8 @@ function AddressModal({ onClose, onAdd }: { onClose: () => void; onAdd: () => vo
 }
 
 const CartPage = () => {
-  const { deleteCartProduct, getTotalPrice, getItemCount, resetCart } = useStore();
+  const { deleteCartProduct, getTotalPrice, getItemCount, resetCart } =
+    useStore();
   const groupedItems = useStore((state) => state.getGroupedItems());
   const { user } = useUser();
 
@@ -96,11 +106,23 @@ const CartPage = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
 
   // ── Coupon ───────────────────────────────────────────────────────────────
-  const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(
+    null
+  );
+
+  const handleCouponApply = (
+    code: string,
+    discount: number,
+    message: string
+  ) => {
+    setDiscountAmount(discount);
+    setCouponApplied(true);
+    setCouponMessage(message);
+    setAppliedCouponCode(code);
+  };
 
   // ── Address form ─────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -117,55 +139,6 @@ const CartPage = () => {
   const FREE_SHIPPING_THRESHOLD = 499;
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
   const total = subtotal + shipping - discountAmount;
-
-  // ── Apply coupon ─────────────────────────────────────────────────────────
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) {
-      toast.error("Please enter a coupon code");
-      return;
-    }
-
-    if (couponApplied) {
-      setDiscountAmount(0);
-      setCouponApplied(false);
-      setCouponMessage("");
-      setCouponCode("");
-      toast.success("Coupon removed");
-      return;
-    }
-
-    setCouponLoading(true);
-
-    try {
-      const res = await fetch("/api/validate-coupon", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: couponCode.trim().toUpperCase(),
-          cartTotal: subtotal,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!data.valid) {
-        toast.error(data.message);
-        setDiscountAmount(0);
-        setCouponApplied(false);
-        setCouponMessage("");
-        return;
-      }
-
-      setDiscountAmount(data.discountAmount);
-      setCouponApplied(true);
-      setCouponMessage(data.message);
-      toast.success(data.message);
-    } catch {
-      toast.error("Could not validate coupon. Try again.");
-    } finally {
-      setCouponLoading(false);
-    }
-  };
 
   // ── Fetch addresses ──────────────────────────────────────────────────────
   const fetchAddresses = async () => {
@@ -188,23 +161,22 @@ const CartPage = () => {
 
   // ── Save address ─────────────────────────────────────────────────────────
   const handleSaveAddress = async () => {
-    if (!user) { window.location.href = "/sign-in"; return; }
-
+    if (!user) {
+      window.location.href = "/sign-in";
+      return;
+    }
     if (!form.name || !form.address || !form.city) {
       toast.error("Please fill all required fields");
       return;
     }
-
     try {
       const res = await fetch("/api/create-address", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clerkUserId: user.id, ...form }),
       });
-
       const data = await res.json();
       if (!data.success) throw new Error();
-
       toast.success("Address added ✅");
       setShowForm(false);
       setForm({ name: "", address: "", city: "", state: "", zip: "" });
@@ -225,9 +197,14 @@ const CartPage = () => {
 
   // ── Checkout ─────────────────────────────────────────────────────────────
   const handleCheckout = async () => {
-    if (!groupedItems.length) { toast.error("Cart is empty"); return; }
-    if (!user) { window.location.href = "/sign-in"; return; }
-
+    if (!groupedItems.length) {
+      toast.error("Cart is empty");
+      return;
+    }
+    if (!user) {
+      window.location.href = "/sign-in";
+      return;
+    }
     if (!selectedAddress) {
       setShowAddressModal(true);
       return;
@@ -250,7 +227,7 @@ const CartPage = () => {
         shippingAmount: shipping,
         totalAmount: total,
         discountAmount,
-        couponCode: couponApplied ? couponCode.trim().toUpperCase() : null,
+        couponCode: couponApplied ? appliedCouponCode : null,
         paymentMethod,
       });
 
@@ -263,7 +240,7 @@ const CartPage = () => {
         return;
       }
 
-      // ── PayU ───────────────────────────────────────────────────────────
+      // ── PayU ─────────────────────────────────────────────────────────
       const payuRes = await fetch("/api/payu/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -271,7 +248,8 @@ const CartPage = () => {
           amount: total.toString(),
           firstname: user.fullName || "Customer",
           email: user.emailAddresses[0]?.emailAddress || "",
-          phone: user.phoneNumbers?.[0]?.phoneNumber || "9999999999",
+          phone:
+            user.phoneNumbers?.[0]?.phoneNumber || "9999999999",
           productinfo: "Kashi Charms Order",
         }),
       });
@@ -303,7 +281,6 @@ const CartPage = () => {
 
   return (
     <div className="bg-[#faf7f2] min-h-screen pb-20">
-
       {/* Address missing modal */}
       {showAddressModal && (
         <AddressModal
@@ -361,13 +338,17 @@ const CartPage = () => {
                           )}
                           <div className="flex flex-col justify-between">
                             <div>
-                              <p className="font-semibold text-lg">{product.name}</p>
+                              <p className="font-semibold text-lg">
+                                {product.name}
+                              </p>
                               <p className="text-sm text-gray-500 mt-1">
                                 Premium handmade jewellery
                               </p>
                             </div>
                             <button
-                              onClick={() => deleteCartProduct(product._id)}
+                              onClick={() =>
+                                deleteCartProduct(product._id)
+                              }
                               className="flex items-center gap-2 text-red-500 text-sm hover:text-red-600 transition"
                             >
                               <Trash size={15} /> Remove
@@ -377,7 +358,9 @@ const CartPage = () => {
 
                         <div className="flex flex-col items-end justify-between">
                           <p className="text-lg font-bold">
-                            <PriceFormatter amount={(product.price || 0) * count} />
+                            <PriceFormatter
+                              amount={(product.price || 0) * count}
+                            />
                           </p>
                           <QuantityButton product={product} />
                         </div>
@@ -420,7 +403,9 @@ const CartPage = () => {
                         </span>
                         <span className="font-medium">
                           {shipping === 0 ? (
-                            <span className="text-green-600 font-semibold">FREE</span>
+                            <span className="text-green-600 font-semibold">
+                              FREE
+                            </span>
                           ) : (
                             <PriceFormatter amount={shipping} />
                           )}
@@ -447,36 +432,30 @@ const CartPage = () => {
                         </div>
                       )}
 
-                      {/* Coupon */}
-                      <div className="space-y-3 border-t pt-5">
-                        <div className="flex items-center gap-2">
-                          <Tag size={16} />
-                          <p className="text-sm font-medium">Apply Coupon</p>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Enter coupon code"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value)}
-                            disabled={couponApplied}
-                            className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black text-sm disabled:bg-gray-50 disabled:text-gray-400"
-                          />
-                          <button
-                            onClick={handleApplyCoupon}
-                            disabled={couponLoading}
-                            className="bg-black text-white px-5 rounded-2xl hover:opacity-90 transition text-sm font-medium disabled:opacity-50"
-                          >
-                            {couponLoading ? "..." : couponApplied ? "Remove" : "Apply"}
-                          </button>
-                        </div>
+                      {/* Coupon Drawer */}
+                      <div className="border-t pt-5">
+                        <CouponDrawer
+                          cartTotal={subtotal}
+                          onApply={handleCouponApply}
+                          appliedCode={appliedCouponCode}
+                        />
 
                         {couponApplied && (
-                          <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+                          <div className="mt-3 bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center justify-between">
                             <p className="text-sm text-green-700 font-medium">
                               ✨ {couponMessage}
                             </p>
+                            <button
+                              onClick={() => {
+                                setDiscountAmount(0);
+                                setCouponApplied(false);
+                                setCouponMessage("");
+                                setAppliedCouponCode(null);
+                              }}
+                              className="text-xs text-red-400 hover:text-red-600 transition ml-3 shrink-0"
+                            >
+                              Remove
+                            </button>
                           </div>
                         )}
                       </div>
@@ -576,9 +555,13 @@ const CartPage = () => {
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                          <AlertCircle size={18} className="text-amber-500 shrink-0" />
+                          <AlertCircle
+                            size={18}
+                            className="text-amber-500 shrink-0"
+                          />
                           <p className="text-sm text-amber-700">
-                            No address found. Add one before placing your order.
+                            No address found. Add one before placing your
+                            order.
                           </p>
                         </div>
                       )}
