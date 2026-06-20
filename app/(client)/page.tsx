@@ -1,6 +1,7 @@
 import Container from "@/components/Container";
 import HomeBanner from "@/components/HomeBanner";
 import AnnouncementBar from "@/components/home/AnnouncementBar";
+import MysteryJars from "@/components/home/MysteryJars";
 import { ShopByVibe, FindYourStyle } from "@/components/home/CollectionsGrid";
 import WhyKashiCharms from "@/components/home/WhyKashiCharms";
 import ReviewsSection from "@/components/home/ReviewsSection";
@@ -17,6 +18,11 @@ export default function Home() {
 
         {/* Hero Banner — no reveal, loads instantly */}
         <HomeBanner />
+
+        {/* Mystery Jewelry Jars — launched before collections, top billing */}
+        <ScrollReveal>
+          <MysteryJars />
+        </ScrollReveal>
 
         {/* Shop By Vibe */}
         <ScrollReveal>
