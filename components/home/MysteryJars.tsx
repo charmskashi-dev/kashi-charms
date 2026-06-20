@@ -15,7 +15,7 @@ import {
 // This is ONE category in Sanity ("Mystery Jewelry Jars", slug below).
 // The 4 variants (Y2K, Cutesy, Silver Oxidised Desi, Golden Luxury) are
 // individual PRODUCTS tagged with that category — not separate categories.
-const MYSTERY_JAR_CATEGORY_SLUG = "mystery-jewelry-jars";
+const MYSTERY_JAR_CATEGORY_SLUG = "mystery-jewellery-jars";
 
 async function getMysteryJarProducts() {
   return await client.fetch(
