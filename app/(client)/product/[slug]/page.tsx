@@ -4,6 +4,7 @@ import FavoriteButton from "@/components/FavoriteButton";
 import ImageView from "@/components/ImageView";
 import PriceView from "@/components/PriceView";
 import ProductCharacteristics from "@/components/ProductCharacteristics";
+import ShareButton from "@/components/ShareButton";
 import { getProductBySlug } from "@/sanity/queries";
 import { notFound } from "next/navigation";
 import { Star } from "lucide-react";
@@ -86,19 +87,23 @@ const SingleProductPage = async ({
             </p>
 
             {/* ACTIONS */}
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
               <AddToCartButton
-                product={product as any}  // ✅ FIX
+                product={product as any}
                 className="flex-1 rounded-full bg-shop-dark-green text-white hover:opacity-90"
               />
               <FavoriteButton
                 showProduct
-                product={product as any}  // ✅ FIX
+                product={product as any}
+              />
+              <ShareButton
+                productName={product?.name ?? ""}
+                productSlug={slug}
               />
             </div>
 
             {/* EXTRA */}
-            <ProductCharacteristics product={product as any} />  {/* ✅ FIX */}
+            <ProductCharacteristics product={product as any} />
 
             {/* TRUST */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
