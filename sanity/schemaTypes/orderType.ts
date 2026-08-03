@@ -73,6 +73,29 @@ export const orderType = defineType({
         Rule.required().email(),
     }),
 
+    // ✅ NEW
+    defineField({
+      name: "phone",
+
+      title: "Customer Phone",
+
+      type: "string",
+
+      description:
+        "Required for shipping — used by the courier to contact the customer.",
+
+      validation: (Rule) =>
+        Rule.required().regex(
+          /^[0-9+\-\s]{10,15}$/,
+          {
+            name: "phone",
+            invert: false,
+          }
+        ).error(
+          "Enter a valid phone number"
+        ),
+    }),
+
     // =========================
     // PRODUCTS
     // =========================
@@ -300,6 +323,15 @@ export const orderType = defineType({
           name: "zip",
 
           title: "ZIP Code",
+
+          type: "string",
+        },
+
+        // ✅ NEW
+        {
+          name: "phone",
+
+          title: "Phone Number",
 
           type: "string",
         },

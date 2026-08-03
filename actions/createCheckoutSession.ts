@@ -132,6 +132,11 @@ export default async function createCheckoutSession(
       email:
         metadata.customerEmail,
 
+      phone:
+        metadata.phone ||
+        metadata.address?.phone ||
+        "",
+
       clerkUserId:
         metadata.clerkUserId ||
         "",

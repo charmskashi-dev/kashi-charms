@@ -127,6 +127,7 @@ const CartPage = () => {
   // ── Address form ─────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     name: "",
+    phone: "",
     address: "",
     city: "",
     state: "",
@@ -165,8 +166,12 @@ const CartPage = () => {
       window.location.href = "/sign-in";
       return;
     }
-    if (!form.name || !form.address || !form.city) {
+    if (!form.name || !form.phone || !form.address || !form.city) {
       toast.error("Please fill all required fields");
+      return;
+    }
+    if (!/^[0-9+\-\s]{10,15}$/.test(form.phone)) {
+      toast.error("Please enter a valid phone number");
       return;
     }
     try {
@@ -179,7 +184,7 @@ const CartPage = () => {
       if (!data.success) throw new Error();
       toast.success("Address added ✅");
       setShowForm(false);
-      setForm({ name: "", address: "", city: "", state: "", zip: "" });
+      setForm({ name: "", phone: "", address: "", city: "", state: "", zip: "" });
       await fetchAddresses();
       setSelectedAddress(data.address);
     } catch {
@@ -220,8 +225,9 @@ const CartPage = () => {
 
       const res = await createCheckoutSession(items, {
         orderNumber: "ORD-" + Date.now(),
-        customerName: user.fullName || "Guest",
+        customerName: selectedAddress.name || user.fullName || "Guest",
         customerEmail: user.emailAddresses[0]?.emailAddress || "",
+        phone: selectedAddress.phone || "",
         clerkUserId: user.id,
         address: selectedAddress,
         shippingAmount: shipping,
@@ -246,10 +252,9 @@ const CartPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: total.toString(),
-          firstname: user.fullName || "Customer",
+          firstname: selectedAddress.name || user.fullName || "Customer",
           email: user.emailAddresses[0]?.emailAddress || "",
-          phone:
-            user.phoneNumbers?.[0]?.phoneNumber || "9999999999",
+          phone: selectedAddress.phone || "9999999999",
           productinfo: "Kashi Charms Order",
         }),
       });
@@ -550,6 +555,9 @@ const CartPage = () => {
                               <p className="text-sm mt-1 opacity-80">
                                 {addr.address}, {addr.city}
                               </p>
+                              <p className="text-sm opacity-80">
+                                📞 {addr.phone}
+                              </p>
                             </div>
                           ))}
                         </div>
@@ -576,14 +584,20 @@ const CartPage = () => {
                       {showForm && (
                         <div className="mt-5 space-y-3">
                           {[
-                            { key: "name", placeholder: "Full Name" },
-                            { key: "address", placeholder: "Address" },
-                            { key: "city", placeholder: "City" },
-                            { key: "state", placeholder: "State" },
-                            { key: "zip", placeholder: "PIN Code" },
-                          ].map(({ key, placeholder }) => (
+                            { key: "name", placeholder: "Full Name", type: "text" },
+                            {
+                              key: "phone",
+                              placeholder: "Phone Number (for delivery)",
+                              type: "tel",
+                            },
+                            { key: "address", placeholder: "Address", type: "text" },
+                            { key: "city", placeholder: "City", type: "text" },
+                            { key: "state", placeholder: "State", type: "text" },
+                            { key: "zip", placeholder: "PIN Code", type: "text" },
+                          ].map(({ key, placeholder, type }) => (
                             <input
                               key={key}
+                              type={type}
                               placeholder={placeholder}
                               className="w-full border border-gray-200 p-3 rounded-2xl outline-none focus:border-black text-sm"
                               value={form[key as keyof typeof form]}

@@ -11,6 +11,13 @@ interface Order {
   orderNumber: string;
   customerName: string;
   email: string;
+  phone?: string;
+  address?: {
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  };
   totalPrice: number;
   status: string;
   orderDate: string;
@@ -60,6 +67,16 @@ export default function OrdersPage() {
               </p>
               <p>{order.customerName}</p>
               <p className="text-sm text-gray-500">{order.email}</p>
+              {order.phone && (
+                <p className="text-sm text-gray-500">📞 {order.phone}</p>
+              )}
+              {order.address && (
+                <p className="text-sm text-gray-500">
+                  {order.address.address}, {order.address.city}
+                  {order.address.state ? `, ${order.address.state}` : ""}
+                  {order.address.zip ? ` - ${order.address.zip}` : ""}
+                </p>
+              )}
               <p className="mt-1">₹{order.totalPrice}</p>
               <p className="text-sm">
                 Status:{" "}
