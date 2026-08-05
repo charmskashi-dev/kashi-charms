@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { PortableText } from "next-sanity";
+import type { PortableTextComponents } from "next-sanity";
 
 import Image from "next/image";
 
@@ -81,6 +82,69 @@ export async function generateMetadata({
 // =========================
 // PAGE
 // =========================
+
+const portableTextComponents: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => (
+      <p className="my-5 text-base/8">{children}</p>
+    ),
+
+    h2: ({ children }) => (
+      <h2 className="my-8 text-3xl font-semibold text-darkColor">
+        {children}
+      </h2>
+    ),
+
+    h3: ({ children }) => (
+      <h3 className="my-6 text-2xl font-medium text-darkColor">
+        {children}
+      </h3>
+    ),
+
+    blockquote: ({ children }) => (
+      <blockquote className="my-8 border-l-4 border-shop-dark-green bg-shop-light-bg p-5 italic rounded-r-xl">
+        {children}
+      </blockquote>
+    ),
+  },
+
+  types: {
+    image: ({ value }) => (
+      <Image
+        alt={value?.alt || ""}
+        src={urlFor(value).width(2000).url()}
+        width={1400}
+        height={1000}
+        className="w-full rounded-2xl my-8"
+      />
+    ),
+  },
+
+  list: {
+    bullet: ({ children }) => (
+      <ul className="list-disc pl-6 my-5 space-y-2">{children}</ul>
+    ),
+
+    number: ({ children }) => (
+      <ol className="list-decimal pl-6 my-5 space-y-2">{children}</ol>
+    ),
+  },
+
+  marks: {
+    strong: ({ children }) => (
+      <strong className="font-semibold text-darkColor">{children}</strong>
+    ),
+
+    link: ({ value, children }) => (
+      <Link
+        href={value?.href || "#"}
+        className="underline underline-offset-4 text-shop-dark-green"
+      >
+        {children}
+      </Link>
+    ),
+  },
+};
 
 const SingleBlogPage = async ({
   params,
@@ -178,121 +242,7 @@ const SingleBlogPage = async ({
             {blog?.body && (
               <PortableText
                 value={blog.body}
-                components={{
-                  block: {
-                    normal: ({
-                      children,
-                    }) => (
-                      <p className="my-5 text-base/8">
-                        {
-                          children
-                        }
-                      </p>
-                    ),
-
-                    h2: ({
-                      children,
-                    }) => (
-                      <h2 className="my-8 text-3xl font-semibold text-darkColor">
-                        {
-                          children
-                        }
-                      </h2>
-                    ),
-
-                    h3: ({
-                      children,
-                    }) => (
-                      <h3 className="my-6 text-2xl font-medium text-darkColor">
-                        {
-                          children
-                        }
-                      </h3>
-                    ),
-
-                    blockquote: ({
-                      children,
-                    }) => (
-                      <blockquote className="my-8 border-l-4 border-shop-dark-green bg-shop-light-bg p-5 italic rounded-r-xl">
-                        {
-                          children
-                        }
-                      </blockquote>
-                    ),
-                  },
-
-                  types: {
-                    image: ({
-                      value,
-                    }) => (
-                      <Image
-                        alt={
-                          value?.alt ||
-                          ""
-                        }
-                        src={urlFor(
-                          value
-                        )
-                          .width(2000)
-                          .url()}
-                        width={1400}
-                        height={1000}
-                        className="w-full rounded-2xl my-8"
-                      />
-                    ),
-                  },
-
-                  list: {
-                    bullet: ({
-                      children,
-                    }) => (
-                      <ul className="list-disc pl-6 my-5 space-y-2">
-                        {
-                          children
-                        }
-                      </ul>
-                    ),
-
-                    number: ({
-                      children,
-                    }) => (
-                      <ol className="list-decimal pl-6 my-5 space-y-2">
-                        {
-                          children
-                        }
-                      </ol>
-                    ),
-                  },
-
-                  marks: {
-                    strong: ({
-                      children,
-                    }) => (
-                      <strong className="font-semibold text-darkColor">
-                        {
-                          children
-                        }
-                      </strong>
-                    ),
-
-                    link: ({
-                      value,
-                      children,
-                    }) => (
-                      <Link
-                        href={
-                          value?.href ||
-                          "#"
-                        }
-                        className="underline underline-offset-4 text-shop-dark-green"
-                      >
-                        {
-                          children
-                        }
-                      </Link>
-                    ),
-                  },
-                }}
+                components={portableTextComponents}
               />
             )}
 

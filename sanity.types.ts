@@ -15,6 +15,78 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type HomeBanner = {
+  _id: string;
+  _type: "homeBanner";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  bannerType?: "image" | "video";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  video?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
+  href?: string;
+  order?: number;
+  isActive?: boolean;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
+export type Coupon = {
+  _id: string;
+  _type: "coupon";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  code?: string;
+  type?: "percentage" | "flat" | "first_order";
+  value?: number;
+  minCartValue?: number;
+  maxUsageLimit?: number;
+  usageCount?: number;
+  expiryDate?: string;
+  isActive?: boolean;
+};
+
 export type Blogcategory = {
   _id: string;
   _type: "blogcategory";
@@ -37,13 +109,6 @@ export type AuthorReference = {
   _type: "reference";
   _weak?: boolean;
   [internalGroqTypeReferenceTo]?: "author";
-};
-
-export type SanityImageAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
 export type BlogcategoryReference = {
@@ -111,22 +176,6 @@ export type BlockContent = Array<
     }
 >;
 
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
-};
-
 export type Author = {
   _id: string;
   _type: "author";
@@ -162,6 +211,21 @@ export type Author = {
   }>;
 };
 
+export type Address = {
+  _id: string;
+  _type: "address";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  clerkUserId?: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+};
+
 export type ProductReference = {
   _ref: string;
   _type: "reference";
@@ -180,6 +244,7 @@ export type Order = {
   clerkUserId?: string;
   customerName?: string;
   email?: string;
+  phone?: string;
   products?: Array<{
     product?: ProductReference;
     quantity?: number;
@@ -198,6 +263,7 @@ export type Order = {
     city?: string;
     state?: string;
     zip?: string;
+    phone?: string;
   };
   status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   orderDate?: string;
@@ -358,16 +424,20 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | SanityImageAssetReference
+  | SanityFileAssetReference
+  | HomeBanner
+  | SanityImageCrop
+  | SanityImageHotspot
+  | Coupon
   | Blogcategory
   | Slug
   | AuthorReference
-  | SanityImageAssetReference
   | BlogcategoryReference
   | Blog
   | BlockContent
-  | SanityImageCrop
-  | SanityImageHotspot
   | Author
+  | Address
   | ProductReference
   | Order
   | CategoryReference
@@ -639,6 +709,7 @@ export type MY_ORDERS_QUERY_RESULT = Array<{
   clerkUserId?: string;
   customerName?: string;
   email?: string;
+  phone?: string;
   products: Array<{
     product: {
       _id: string;
@@ -685,6 +756,7 @@ export type MY_ORDERS_QUERY_RESULT = Array<{
     city?: string;
     state?: string;
     zip?: string;
+    phone?: string;
   };
   status?: "cancelled" | "delivered" | "pending" | "processing" | "shipped";
   orderDate?: string;
