@@ -1,39 +1,35 @@
 import Link from "next/link";
+import Image from "next/image";
 import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 import ScrollReveal from "@/components/home/ScrollReveal";
-import ProductCard from "@/components/ProductCard";
 import { ArrowRight } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/ui/ui/carousel";
 
-// ── Mystery Jewelry Jars ─────────────────────────────────────────────────────
-// This is ONE category in Sanity ("Mystery Jewelry Jars", slug below).
-// The 4 variants (Y2K, Cutesy, Silver Oxidised Desi, Golden Luxury) are
-// individual PRODUCTS tagged with that category — not separate categories.
-const MYSTERY_JAR_CATEGORY_SLUG = "mystery-jewellery-jars";
+// ── Mystery Jewellery Jars ───────────────────────────────────────────────────
+// Two sub-categories in Sanity: Mini and Med. jars. Each is its OWN category
+// document (slug below) with its own products, image, description, and
+// "range" (starting price). Tapping a card routes to that category's page,
+// where CategoryProducts renders the filtered grid.
+const JAR_SIZE_SLUGS = ["mini-mystery-jewellery-jars", "med-mystery-jewellery-jars"];
 
-async function getMysteryJarProducts() {
+async function getJarSizeCategories() {
   return await client.fetch(
-    `*[
-      _type == "product" &&
-      references(*[_type == "category" && slug.current == $slug]._id)
-    ] | order(name asc){
-      ...,
-      "categories": categories[]->title
+    `*[_type == "category" && slug.current in $slugs] | order(range asc){
+      _id,
+      title,
+      description,
+      range,
+      image,
+      "slug": slug.current
     }`,
-    { slug: MYSTERY_JAR_CATEGORY_SLUG }
+    { slugs: JAR_SIZE_SLUGS }
   );
 }
 
 export default async function MysteryJars() {
-  const products = await getMysteryJarProducts();
+  const jarSizes = await getJarSizeCategories();
 
-  if (!products?.length) return null;
+  if (!jarSizes?.length) return null;
 
   return (
     <section className="py-14 md:py-20">
@@ -45,33 +41,49 @@ export default async function MysteryJars() {
           Mystery Jewelry Jars
         </h2>
         <p className="text-lightColor mt-4 max-w-2xl mx-auto">
-          Surprise yourself. Pick a vibe, unbox your mystery.
+          Surprise yourself. Pick your size, pick a vibe, unbox your mystery.
         </p>
       </ScrollReveal>
 
-      <Carousel
-        opts={{ align: "start", loop: false }}
-        className="w-full px-1 md:px-10"
-      >
-        <CarouselContent>
-          {products.map((product: any) => (
-            <CarouselItem
-              key={product._id}
-              className="basis-[78%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
-            >
-              <ProductCard product={product} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
+      <div className="grid sm:grid-cols-2 gap-6 px-1 md:px-10 max-w-4xl mx-auto">
+        {jarSizes.map((jar: any) => (
+          <Link href={`/category/${jar.slug}`} key={jar._id} className="group">
+            <div className="relative overflow-hidden rounded-2xl">
+              {jar.image ? (
+                <Image
+                  src={urlFor(jar.image).url()}
+                  alt={jar.title}
+                  width={600}
+                  height={700}
+                  className="h-80 md:h-96 w-full object-cover group-hover:scale-105 hoverEffect"
+                />
+              ) : (
+                <div className="h-80 md:h-96 w-full bg-shop-light-bg" />
+              )}
 
-        {/* Arrows: desktop only. Auto-disable once all cards are visible / at an edge. */}
-        <CarouselPrevious className="hidden md:flex -left-4" />
-        <CarouselNext className="hidden md:flex -right-4" />
-      </Carousel>
+              <div className="absolute inset-0 bg-black/25 flex flex-col justify-end p-6">
+                <h3 className="text-white text-2xl font-semibold">
+                  {jar.title}
+                </h3>
+                {jar.description && (
+                  <p className="text-white/90 text-sm mt-2 line-clamp-2">
+                    {jar.description}
+                  </p>
+                )}
+                {jar.range && (
+                  <p className="text-white/90 text-xs mt-2 uppercase tracking-wide">
+                    From ₹{jar.range}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
 
       <div className="text-center mt-6 md:mt-8">
         <Link
-          href={`/category/${MYSTERY_JAR_CATEGORY_SLUG}`}
+          href="/shop"
           className="inline-flex items-center gap-1.5 text-shop-dark-green font-medium hover:gap-2.5 transition-all duration-300"
         >
           Shop All Mystery Jars
